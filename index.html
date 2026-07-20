@@ -1929,9 +1929,12 @@ async function renderTravelTimes() {
     filtered.map(r => getHistoricalBaseline('traffic', r.id))
   );
 
-  let html = '';
+  let html = '', lastRoad = null;
   for (let i=0; i<filtered.length; i++) {
     const r = filtered[i], baseline = baselines[i];
+    if (ttRoadFilter==='ALL' && r.road!==lastRoad) {
+      html += `<div class="tt-group-header">${r.road}</div>`; lastRoad = r.road;
+    }
     const ratio = r.CurrentTime / r.AverageTime;
     const badge = ratio<=1.15?'tt-ok':ratio<=1.65?'tt-warn':'tt-bad';
     const delta = r.CurrentTime - r.AverageTime;

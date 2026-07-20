@@ -414,10 +414,6 @@
   .nws-headline{ font-size:10px; color:var(--text); margin-top:2px; line-height:1.5; }
   .nws-meta    { font-size:9px; color:var(--text-dim); margin-top:3px; }
 
-  /* -- CONFIG NOTICE -- */
-  #config-notice { background:rgba(201,168,76,0.08); border:1px solid rgba(201,168,76,0.3); padding:8px 12px; font-size:10px; color:var(--gold); display:flex; align-items:center; gap:8px; }
-  #config-notice a { color:var(--gold); }
-
   /* -- BAY BRIDGE STATUS -- */
   #baybridge-content { padding:12px 14px; }
   .baybridge-status { font-size:24px; font-weight:700; line-height:1; }
@@ -542,9 +538,6 @@
 
 <div id="main">
 
-  <div id="config-notice" style="display:none">
-    &#9888; WMATA key not set. Set <code>WMATA_KEY</code> in the CONFIG block for live Metro predictions.
-  </div>
 
   <!-- OPS BRIEF -->
   <div class="panel" id="ops-brief-panel">
@@ -584,7 +577,7 @@
   <!-- ACTIVE INCIDENTS -->
   <div class="panel" id="incidents-panel">
     <div class="panel-header">
-      <span class="panel-title"><span class="panel-icon">&#9888;</span> DC Active Traffic Incidents</span>
+      <span class="panel-title"><span class="panel-icon">&#9888;</span> Regional Active Traffic Incidents — DC / MD / VA</span>
       <span class="refresh-ts" id="incidents-ts">&#8212;</span>
     </div>
     <div id="incidents-list"><div class="loading-msg">Loading incidents&hellip;</div></div>
@@ -593,7 +586,7 @@
   <!-- HIGHWAY TRAVEL TIMES -->
   <div class="panel" id="traveltimes-panel">
     <div class="panel-header">
-      <span class="panel-title"><span class="panel-icon">&#128739;</span> Highway Travel Times <span style="font-size:8px;font-weight:700;letter-spacing:0.08em;padding:2px 5px;border:1px solid var(--amber);color:var(--amber);background:rgba(240,165,0,0.08);vertical-align:middle;margin-left:4px;">EST</span></span>
+      <span class="panel-title"><span class="panel-icon">&#128739;</span> Highway Travel Times <span style="font-size:8px;font-weight:700;letter-spacing:0.08em;padding:2px 5px;border:1px solid var(--border);color:var(--text-dim);vertical-align:middle;margin-left:4px;">MIXED: LIVE + EST</span></span>
       <span class="refresh-ts" id="tt-ts">&#8212;</span>
     </div>
     <div id="tt-filters">
@@ -1155,7 +1148,6 @@
 //  CONFIG — fill in keys before deploying
 // ╚══════════════════════════════════════════════════════════╝
 const CONFIG = {
-  WMATA_KEY:        '091e5ddb635f413e843c4e15566302ca',          // get free key at developer.wmata.com
   TICKETMASTER_KEY: 'EqgsmyF0kcYqZSX1w3tHMFtAVo1kTn9X',
   SUPABASE_URL:   'https://scsdstpabzkiqnvsskts.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc2RzdHBhYnpraXFudnNza3RzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTUxNzcsImV4cCI6MjA5NTI5MTE3N30.HMo41UCsWsCwk75GxoujLcIlwlZDhXPNnLZ1x7K8VV8',
@@ -1746,6 +1738,68 @@ function renderNWSAlerts(alerts) {
 // ╔══════════════════════════════════════════════════════════╗
 //  DC TRAFFIC INCIDENTS (DC OpenData — no key)
 // ╚══════════════════════════════════════════════════════════╝
+// Shared accumulator so DC (existing, untouched fetch/fallback logic), MD, and VA feeds
+// can each update independently and re-render the merged, region-wide list without
+// stepping on each other's results.
+let _regionalIncidents = { dc: [], md: [], va: [] };
+function regionalIncidentsCount() {
+  return _regionalIncidents.dc.length + _regionalIncidents.md.length + _regionalIncidents.va.length;
+}
+
+function renderRegionalIncidents() {
+  const items = [..._regionalIncidents.dc, ..._regionalIncidents.md, ..._regionalIncidents.va];
+  if (!items.length) {
+    document.getElementById('incidents-list').innerHTML='<div class="loading-msg">No active regional traffic incidents or closures.</div>';
+    return;
+  }
+  const order={high:0,medium:1,low:2};
+  const sorted=[...items].sort((a,b)=>order[a.severity]-order[b.severity]);
+  document.getElementById('incidents-list').innerHTML = sorted.slice(0,30).map(a=>`
+    <div class="incident-item">
+      <div><div class="incident-sev sev-${a.severity}">${a.severity.toUpperCase()}</div><div class="incident-road" style="margin-top:4px">${a.road}</div></div>
+      <div><div class="incident-desc"><span style="color:var(--text-dim);font-weight:700">${a.sourceLabel}</span> &middot; ${a.description}</div><div class="incident-meta">${a.meta}</div></div>
+    </div>`).join('');
+}
+
+function normalizeDcClosure(a) {
+  const sev=parseDcSev(a.CLOSURETYPE||'');
+  const type=a.CLOSURETYPE||'Closure', desc=a.DESCRIPTION||'';
+  const ward=a.WARD?`Ward ${a.WARD}`:'';
+  const when=a.FROMDATE?new Date(a.FROMDATE).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
+  return { severity:sev, sourceLabel:'DC', road:a.ROADNAME||'DC Road',
+    description:`${type}${desc?' — '+desc.slice(0,80):''}`, meta:[ward,when].filter(Boolean).join(' · ') };
+}
+function normalizeWmata(a) {
+  const type=a.IncidentType||'Alert';
+  const sev=type==='Alert'||type==='Disruption'?'high':'medium';
+  const lines=(a.LinesAffected||'').replace(/;/g,' ·').trim();
+  const when=a.DateUpdated?new Date(a.DateUpdated).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'}):'—';
+  return { severity:sev, sourceLabel:'DC Metro', road:lines||'Metro',
+    description:`${type.toUpperCase()}: ${a.Description||'—'}`, meta:when };
+}
+// Maryland's incidents/closures feeds are statewide — CHART_DMV_COUNTIES/CHART_DMV_ROUTES
+// (already defined below for the MDOT SHA CHART section) scope them to the DC metro area.
+function normalizeMDIncident(a) {
+  const t=(a.IncidentType||'').toLowerCase();
+  const sev=/closure|crash|accident|emergency/.test(t)?'high':/construction|maintenance|utility/.test(t)?'medium':'low';
+  return { severity:sev, sourceLabel:'MD', road:a.RouteName||a.Route||'MD Road',
+    description:a.Description||a.IncidentType||'Incident',
+    meta:[a.County, a.Updated?new Date(a.Updated).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'}):null].filter(Boolean).join(' · ') };
+}
+function normalizeMDClosure(a) {
+  return { severity:'medium', sourceLabel:'MD', road:a.RouteName||a.Route||'MD Road',
+    description:a.Description||'Closure',
+    meta:[a.County, a.StartTime?`from ${new Date(a.StartTime).toLocaleDateString('en-US',{month:'short',day:'numeric'})}`:null].filter(Boolean).join(' · ') };
+}
+function normalizeVAIncident(f) {
+  const p=f.properties||{};
+  const pr=(p.priority||'').toLowerCase();
+  const sev=pr==='major'?'high':pr==='minor'?'low':'medium';
+  return { severity:sev, sourceLabel:'VA', road:p.route||'VA Road',
+    description:`${p.type||'Incident'}${p.location?' — '+p.location:''}`,
+    meta:p.message_511?p.message_511.slice(0,80):'' };
+}
+
 async function fetchIncidents() {
   // DC Open Data (Socrata) — CORS-friendly, no proxy needed
   // Two sources: DDOT real-time road closures + 311 traffic incidents
@@ -1762,36 +1816,36 @@ async function fetchIncidents() {
       const data = await res.json();
       const feats = (data.features||[]).map(f=>f.attributes||f);
       if (feats.length > 0) {
-        renderIncidentsDC(feats, 'road-closure');
+        _regionalIncidents.dc = feats.map(normalizeDcClosure);
         setDot('traffic-dot','green');
-        document.getElementById('incidents-ts').textContent=`Refreshed ${ts()} · ${feats.length} closures`;
+        renderRegionalIncidents();
+        document.getElementById('incidents-ts').textContent=`Refreshed ${ts()} · ${regionalIncidentsCount()} active`;
         _brief.tt = true;
         return;
       }
     }
   } catch(e) { /* fall through */ }
 
-  // Fallback: WMATA incidents (if key set) — works without CORS issues
-  if (CONFIG.WMATA_KEY) {
-    try {
-      const res = await fetch('https://api.wmata.com/Incidents.svc/json/Incidents',
-        { headers: { api_key: CONFIG.WMATA_KEY }, signal: AbortSignal.timeout(5000) });
-      if (res.ok) {
-        const data = await res.json();
-        const incidents = data.Incidents || [];
-        renderIncidentsDC(incidents, 'wmata');
-        setDot('traffic-dot', incidents.length ? 'amber' : 'green');
-        document.getElementById('incidents-ts').textContent=`Refreshed ${ts()} · WMATA alerts · ${incidents.length} active`;
-        _brief.incidents = true;  // separate flag — don't retrigger TT bullet
-        return;
-      }
-    } catch(e) { /* fall through */ }
-  }
+  // Fallback: WMATA incidents (proxied server-side) — works without CORS issues
+  try {
+    const res = await fetch(`/api/wmata?path=${encodeURIComponent('Incidents.svc/json/Incidents')}`,
+      { signal: AbortSignal.timeout(5000) });
+    if (res.ok) {
+      const data = await res.json();
+      const incidents = data.Incidents || [];
+      _regionalIncidents.dc = incidents.map(normalizeWmata);
+      setDot('traffic-dot', incidents.length ? 'amber' : 'green');
+      renderRegionalIncidents();
+      document.getElementById('incidents-ts').textContent=`Refreshed ${ts()} · WMATA alerts · ${regionalIncidentsCount()} active`;
+      _brief.incidents = true;  // separate flag — don't retrigger TT bullet
+      return;
+    }
+  } catch(e) { /* fall through */ }
 
-  // Final fallback
-  setDot('traffic-dot','gray');
-  document.getElementById('incidents-list').innerHTML=
-    `<div class="loading-msg">DC traffic incident feed unavailable &mdash; check <a href="https://traffic.dc.gov" target="_blank" rel="noopener" style="color:var(--text-dim)">traffic.dc.gov</a> for current conditions.</div>`;
+  // Final fallback — DC's own feed unavailable; still render whatever MD/VA already have
+  _regionalIncidents.dc = [];
+  setDot('traffic-dot', regionalIncidentsCount() ? 'amber' : 'gray');
+  renderRegionalIncidents();
 }
 function parseDcSev(type) {
   const t=(type||'').toLowerCase();
@@ -1800,47 +1854,44 @@ function parseDcSev(type) {
   return 'low';
 }
 
-function renderIncidentsDC(items, source) {
-  if (!items.length) {
-    document.getElementById('incidents-list').innerHTML='<div class="loading-msg">No active DC traffic incidents or closures.</div>';
-    return;
-  }
+// ╔══════════════════════════════════════════════════════════╗
+//  MARYLAND CHART — LIVE INCIDENTS + ROAD CLOSURES
+//  Official ArcGIS Open Data (confirmed live, no API key): both endpoints below returned
+//  real records when queried directly. CHART's TSS layer is also published this way but
+//  returns zero records right now, so it isn't integrated.
+// ╚══════════════════════════════════════════════════════════╝
+async function fetchMDIncidents() {
+  const INC_URL = 'https://chartimap1.sha.maryland.gov/arcgis/rest/services/CHART/Incidents/MapServer/0/query?where=1%3D1&outFields=*&f=json';
+  const CLO_URL = 'https://chartimap1.sha.maryland.gov/arcgis/rest/services/CHART/Closures/MapServer/0/query?where=1%3D1&outFields=*&f=json';
+  try {
+    const [incRes, cloRes] = await Promise.all([
+      fetch(INC_URL, { signal: AbortSignal.timeout(6000) }),
+      fetch(CLO_URL, { signal: AbortSignal.timeout(6000) }),
+    ]);
+    const incData = incRes.ok ? await incRes.json() : null;
+    const cloData = cloRes.ok ? await cloRes.json() : null;
+    const inScope = a => CHART_DMV_COUNTIES.has(a.County||'') || CHART_DMV_ROUTES.test(a.RouteName||a.Route||'');
+    const incItems = (incData?.features||[]).map(f=>f.attributes).filter(inScope).map(normalizeMDIncident);
+    const cloItems = (cloData?.features||[]).map(f=>f.attributes).filter(inScope).map(normalizeMDClosure);
+    _regionalIncidents.md = [...incItems, ...cloItems];
+  } catch(e) { _regionalIncidents.md = []; }
+  renderRegionalIncidents();
+  document.getElementById('incidents-ts').textContent = `Refreshed ${ts()} · ${regionalIncidentsCount()} active`;
+}
 
-  const order={high:0,medium:1,low:2};
-
-  if (source === 'wmata') {
-    // WMATA incidents shape: { IncidentType, Description, LinesAffected, DateUpdated }
-    const sorted=[...items].sort((a,b)=>{
-      const sa=a.IncidentType==='Delay'?1:0, sb=b.IncidentType==='Delay'?1:0;
-      return sa-sb;
-    });
-    document.getElementById('incidents-list').innerHTML = sorted.slice(0,20).map(a=>{
-      const type=a.IncidentType||'Alert';
-      const sev=type==='Alert'||type==='Disruption'?'high':'medium';
-      const lines=(a.LinesAffected||'').replace(/;/g,' ·').trim();
-      const when=a.DateUpdated?new Date(a.DateUpdated).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'}):'—';
-      return `<div class="incident-item">
-        <div><div class="incident-sev sev-${sev}">${type.toUpperCase()}</div><div class="incident-road" style="margin-top:4px">${lines||'Metro'}</div></div>
-        <div><div class="incident-desc">${a.Description||'—'}</div><div class="incident-meta">${when}</div></div>
-      </div>`;
-    }).join('');
-    return;
-  }
-
-  // DC GIS road closures shape: { ROADNAME, CLOSURETYPE, FROMDATE, DESCRIPTION, WARD }
-  const sorted=[...items].sort((a,b)=>order[parseDcSev(a.CLOSURETYPE||'')]-order[parseDcSev(b.CLOSURETYPE||'')]);
-  document.getElementById('incidents-list').innerHTML = sorted.slice(0,25).map(a=>{
-    const sev=parseDcSev(a.CLOSURETYPE||'');
-    const road=a.ROADNAME||'DC Road';
-    const type=a.CLOSURETYPE||'Closure';
-    const desc=a.DESCRIPTION||'';
-    const ward=a.WARD?`Ward ${a.WARD}`:'';
-    const when=a.FROMDATE?new Date(a.FROMDATE).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'—';
-    return `<div class="incident-item">
-      <div><div class="incident-sev sev-${sev}">${sev.toUpperCase()}</div><div class="incident-road" style="margin-top:4px">${road}</div></div>
-      <div><div class="incident-desc">${type}${desc?' — '+desc.slice(0,80):''}</div><div class="incident-meta">${ward}${ward&&when?' · ':''}${when}</div></div>
-    </div>`;
-  }).join('');
+// ╔══════════════════════════════════════════════════════════╗
+//  VIRGINIA VDOT 511 — LIVE INCIDENTS
+//  First-party VDOT endpoint, confirmed live and CORS-open (wildcard), no API key.
+// ╚══════════════════════════════════════════════════════════╝
+async function fetchVAIncidents() {
+  const URL = 'https://511.vdot.virginia.gov/services/map/layers/map/incidents';
+  try {
+    const res = await fetch(URL, { signal: AbortSignal.timeout(6000) });
+    const data = res.ok ? await res.json() : null;
+    _regionalIncidents.va = (data?.features||[]).map(normalizeVAIncident);
+  } catch(e) { _regionalIncidents.va = []; }
+  renderRegionalIncidents();
+  document.getElementById('incidents-ts').textContent = `Refreshed ${ts()} · ${regionalIncidentsCount()} active`;
 }
 
 // Shared direction-indicator icon — a single solid triangle rotated per direction, so all
@@ -1877,6 +1928,57 @@ const DMV_ROUTES = [
   { id:'i83-s',   road:'I-83',  dir:'S', name:'I-83 / JFX (PA line to Baltimore)',         avgMin:25 },
 ];
 
+// ╔══════════════════════════════════════════════════════════╗
+//  MARYLAND CHART — LIVE TRAVEL TIMES (undocumented endpoint, no CORS —
+//  proxied via /api/md-traveltimes; confirmed no official ArcGIS equivalent exists)
+// ╚══════════════════════════════════════════════════════════╝
+//
+// Only routes with a clean, unambiguous single-corridor match in CHART's live data go
+// live. Checked route-by-route against CHART's actual 86 named segments before deciding:
+//  - i495-s, i66-e, i66-w: Virginia-side, CHART is Maryland-only — no live source exists.
+//  - i95-n, i95-s: DMV's route describes the full Springfield-DC-Baltimore corridor, but
+//    CHART only has the Maryland portion — substituting a partial segment under a label
+//    that promises the full corridor would misrepresent scope.
+//  - i495-n, i695-e, i695-w: CHART only labels these Inner Loop/Outer Loop (confirmed:
+//    clockwise/counterclockwise respectively). Northern Arc and full Beltway loops don't
+//    have a real fixed compass direction to map that onto — same category of mismatch as
+//    i95, not a resolved fact, so left modeled rather than guessed.
+// The 5 below have a genuine single-direction, single-corridor match.
+const CHART_ROUTE_MAP = {
+  'i270-n': ['I-270 North, I-495 EX 35 to I-370', 'I-270 North, I-370 to I-70'],
+  'i270-s': ['I-270 South, I-370 to I-270 Split', 'I-270 South, I-70 to I-370'],
+  'us50-e': ['US 50 East, District of Columbia to I-495', 'US 50 East, I-495 to I-97', 'US 50 East, I-97 to Bay Bridge'],
+  'i295-s': ['MD 295 South, I-495 to I-195', 'MD 295 South, I-195 to I-95'],
+  'i83-s':  ['I-83 South, PA State Line to Shawan Rd', 'I-83 South, Shawan Rd to I-695', 'I-83 JFX South, I-695 to Fayette St'],
+};
+
+let _mdTravelTimes = null; // cache of CHART's live segment list, refreshed each cycle
+
+async function fetchMDTravelTimes() {
+  try {
+    const res = await fetch('/api/md-traveltimes');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    _mdTravelTimes = Array.isArray(data?.data) ? data.data : null;
+  } catch (e) {
+    _mdTravelTimes = null; // falls back to the modeled figure for these routes too
+  }
+}
+
+// Sums the named CHART segments composing a DMV route into one current time + speed.
+// Requires every expected segment to be present in the live payload — a partial match
+// would silently understate the corridor, so it falls back to the model instead.
+function liveMDSegment(dmvRouteId) {
+  const names = CHART_ROUTE_MAP[dmvRouteId];
+  if (!names || !_mdTravelTimes) return null;
+  const segs = _mdTravelTimes.filter(r => names.includes(r.name));
+  if (segs.length !== names.length) return null;
+  const totalLength = segs.reduce((s, r) => s + (r.length || 0), 0);
+  const totalTimeSecs = segs.reduce((s, r) => s + (r.travelTimeSecs || 0), 0);
+  if (!totalLength || !totalTimeSecs) return null;
+  return { currentMin: Math.round(totalTimeSecs / 60) };
+}
+
 function getModeledMultiplier() {
   // Always use Eastern time for DMV traffic model regardless of viewer's timezone
   const now = new Date();
@@ -1903,8 +2005,9 @@ function buildTravelTimes() {
   const mult=getModeledMultiplier();
   const wxFactor = weatherData ? Math.min(1.5, 1 + wmoSeverity(weatherData.current?.weather_code??0)*0.20 + (weatherData.current?.precipitation_probability??0)/100*0.10) : 1;
   return DMV_ROUTES.map(r=>{
-    const cur=Math.round(r.avgMin*mult*wxFactor);
-    return { ...r, CurrentTime:cur, AverageTime:r.avgMin, _road:r.road, _dir:r.dir };
+    const live = liveMDSegment(r.id);
+    const cur = live ? live.currentMin : Math.round(r.avgMin*mult*wxFactor);
+    return { ...r, CurrentTime:cur, AverageTime:r.avgMin, _road:r.road, _dir:r.dir, _live: !!live };
   });
 }
 async function renderTravelTimes() {
@@ -1944,8 +2047,11 @@ async function renderTravelTimes() {
     const avgDisplay = baseline && baseline.count >= 5
       ? `90d avg: ${baseline.avg}m`
       : `avg ${r.AverageTime}m`;
+    const srcDot = r._live
+      ? '<span class="dot dot-green" title="Live: MDOT SHA CHART" style="width:5px;height:5px;margin-right:4px;"></span>'
+      : '<span class="dot dot-amber" title="Modeled — no live source for this route" style="width:5px;height:5px;margin-right:4px;"></span>';
     html += `<div class="tt-row" id="tt-row-${r.id}">
-      <span class="tt-tag">${r.road} ${dirArrowSVG(r.dir)}</span>
+      <span class="tt-tag">${srcDot}${r.road} ${dirArrowSVG(r.dir)}</span>
       <span class="tt-name">${r.name}</span>
       <span class="tt-cur">${r.CurrentTime}<span class="tt-cur-unit"> min</span></span>
       <span class="tt-avg">${avgDisplay}</span>
@@ -1954,7 +2060,12 @@ async function renderTravelTimes() {
     </div>`;
   }
   el.innerHTML = html;
-  el.insertAdjacentHTML('beforeend', `<div style="padding:4px 10px;font-size:8px;color:var(--text-dim);border-top:1px solid var(--border);font-style:italic">* Time-of-day model &mdash; no live feed. Real-time: <a href="https://511virginia.org" target="_blank" style="color:var(--text-dim)">511virginia.org</a> &middot; <a href="https://chart.maryland.gov" target="_blank" style="color:var(--text-dim)">chart.maryland.gov</a></div>`);
+  el.insertAdjacentHTML('beforeend', `<div style="padding:4px 10px;font-size:8px;color:var(--text-dim);border-top:1px solid var(--border);font-style:italic;line-height:1.7">
+    <span class="dot dot-green" style="width:5px;height:5px;margin-right:4px;"></span>I-270, US-50, I-295, I-83: live &mdash; MDOT SHA CHART, official ArcGIS Open Data<br>
+    <span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>I-495 (MD side), I-695: time-of-day model &mdash; CHART only labels these Inner/Outer Loop, no reliable compass-direction match<br>
+    <span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>I-95 (full corridor), I-495 (VA side), I-66: time-of-day model &mdash; no live source covers this corridor/state<br>
+    Real-time alternatives: <a href="https://511virginia.org" target="_blank" style="color:var(--text-dim)">511virginia.org</a> &middot; <a href="https://chart.maryland.gov" target="_blank" style="color:var(--text-dim)">chart.maryland.gov</a>
+  </div>`);
 
   ttFetchedAt = new Date();
   document.getElementById('tt-ts').textContent = `Estimated ${ts()} · ${allTravelTimes.length} routes`;
@@ -2107,29 +2218,32 @@ const WMATA_LINES = [
 
 async function fetchWMATA() {
   const el = document.getElementById('wmata-content');
-  if (!CONFIG.WMATA_KEY) {
-    // Render static grid with dashes — graceful no-key fallback
-    renderWMATA(null);
-    setDot('wmata-dot','amber');
-    document.getElementById('wmata-ts').textContent = 'No API key — schedule-based estimates';
-    return;
-  }
   try {
     // Fetch all line predictions
     const results = new Map();
+    let anySuccess = false;
     for (const line of WMATA_LINES) {
       for (const stn of line.stations) {
         if (results.has(stn.code)) continue;
         try {
-          const res = await fetch(`https://api.wmata.com/StationPrediction.svc/json/GetPrediction/${stn.code}`,
-            { headers: { api_key: CONFIG.WMATA_KEY }, signal: AbortSignal.timeout(4000) });
+          const res = await fetch(`/api/wmata?path=${encodeURIComponent('StationPrediction.svc/json/GetPrediction/'+stn.code)}`,
+            { signal: AbortSignal.timeout(4000) });
           if (res.ok) {
             const data = await res.json();
             const trains = (data.Trains||[]).filter(t=>t.Min && t.Min!=='');
             results.set(stn.code, trains.slice(0,3));
+            anySuccess = true;
           }
         } catch(e) { /* skip station */ }
       }
+    }
+    if (!anySuccess) {
+      // Every station failed — proxy/key unavailable server-side. Same graceful
+      // static-grid fallback as before, just triggered by fetch failure now.
+      renderWMATA(null);
+      setDot('wmata-dot','amber');
+      document.getElementById('wmata-ts').textContent = 'Live predictions unavailable — schedule-based estimates';
+      return;
     }
     renderWMATA(results);
     setDot('wmata-dot','green');
@@ -2178,7 +2292,7 @@ function renderWMATA(results) {
   }).join('')}</div>`;
 
   document.getElementById('wmata-content').innerHTML = diagramHtml + colsHtml +
-    `<div class="wmata-footer">${results&&CONFIG.WMATA_KEY?'Live WMATA predictions':'Set WMATA_KEY in CONFIG for live predictions · wmata.com/riders/developer'} &nbsp;·&nbsp; <a href="https://wmata.com" target="_blank" rel="noopener" style="color:var(--text-dim)">wmata.com</a></div>`;
+    `<div class="wmata-footer">${results?'Live WMATA predictions':'Schedule-based estimates — live predictions unavailable'} &nbsp;·&nbsp; <a href="https://wmata.com" target="_blank" rel="noopener" style="color:var(--text-dim)">wmata.com</a></div>`;
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -2343,10 +2457,10 @@ for (const s of WMATA_STNS) { if (!WMATA_STN_MAP[s.code]) WMATA_STN_MAP[s.code] 
 let _circuitCache = null; // { RD:[{CircuitId,StationCode},...], BL:[...], ... }
 
 async function fetchCircuitMap() {
-  if (_circuitCache || !CONFIG.WMATA_KEY) return;
+  if (_circuitCache) return;
   try {
-    const res = await fetch('https://api.wmata.com/TrainPositions/StandardRoutes?contentType=json',
-      { headers:{ api_key:CONFIG.WMATA_KEY }, signal:AbortSignal.timeout(8000) });
+    const res = await fetch(`/api/wmata?path=${encodeURIComponent('TrainPositions/StandardRoutes?contentType=json')}`,
+      { signal:AbortSignal.timeout(8000) });
     if (!res.ok) return;
     const data = await res.json();
     const cache = {};
@@ -2409,17 +2523,12 @@ async function fetchWMATALiveMap() {
   const el = document.getElementById('wmata-map-content');
   if (!el) return;
 
-  if (!CONFIG.WMATA_KEY) {
-    el.innerHTML = '<div class="loading-msg" style="line-height:1.6">Set WMATA_KEY in CONFIG for live train map.</div>';
-    return;
-  }
-
   // Ensure circuit cache is built
   await fetchCircuitMap();
 
   try {
-    const res = await fetch('https://api.wmata.com/TrainPositions/TrainPositions?contentType=json',
-      { headers:{ api_key:CONFIG.WMATA_KEY }, signal:AbortSignal.timeout(6000) });
+    const res = await fetch(`/api/wmata?path=${encodeURIComponent('TrainPositions/TrainPositions?contentType=json')}`,
+      { signal:AbortSignal.timeout(6000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     renderWMATALiveMap(data.TrainPositions || []);
@@ -3008,19 +3117,13 @@ async function fetchSFD() {
   // Both return real-time service disruptions, delays, and safety incidents
   const el = document.getElementById('sfd-content');
 
-  if (!CONFIG.WMATA_KEY) {
-    setDot('sfd-dot','gray');
-    el.innerHTML = '<div class="loading-msg">Set WMATA_KEY in CONFIG for live incident alerts.</div>';
-    return;
-  }
-
   try {
     // Fetch rail and bus incidents in parallel
     const [railRes, busRes] = await Promise.all([
-      fetch('https://api.wmata.com/Incidents.svc/json/Incidents',
-        { headers:{ api_key:CONFIG.WMATA_KEY }, signal:AbortSignal.timeout(6000) }),
-      fetch('https://api.wmata.com/Incidents.svc/json/BusIncidents',
-        { headers:{ api_key:CONFIG.WMATA_KEY }, signal:AbortSignal.timeout(6000) }),
+      fetch(`/api/wmata?path=${encodeURIComponent('Incidents.svc/json/Incidents')}`,
+        { signal:AbortSignal.timeout(6000) }),
+      fetch(`/api/wmata?path=${encodeURIComponent('Incidents.svc/json/BusIncidents')}`,
+        { signal:AbortSignal.timeout(6000) }),
     ]);
 
     const railData = railRes.ok ? await railRes.json() : { Incidents: [] };
@@ -3119,7 +3222,7 @@ function renderSFD(railInc, busInc) {
     }).join('');
   }
 
-  html += `<div style="padding:4px 10px;font-size:8px;color:var(--text-dim);border-top:1px solid var(--border)">Source: WMATA Incidents API &middot; <a href="https://www.wmata.com/service/status/" target="_blank" rel="noopener" style="color:var(--text-dim)">Full status: wmata.com &#8599;</a>${CONFIG.WMATA_KEY?'':' &middot; Set WMATA_KEY for live data'}</div>`;
+  html += `<div style="padding:4px 10px;font-size:8px;color:var(--text-dim);border-top:1px solid var(--border)">Source: WMATA Incidents API &middot; <a href="https://www.wmata.com/service/status/" target="_blank" rel="noopener" style="color:var(--text-dim)">Full status: wmata.com &#8599;</a></div>`;
 
   document.getElementById('sfd-content').innerHTML = html;
 }
@@ -3433,8 +3536,11 @@ async function fetchBayBridge() {
 }
 
 // ╔══════════════════════════════════════════════════════════╗
-//  MARYLAND CHART — LIVE INCIDENTS + ROAD CLOSURES
-//  Source: chart.maryland.gov/DataFeeds (free, no API key)
+//  WTOP TRAFFIC RSS — used by fetchDCCams() below.
+//  chartIncidentType/isChartDMV/CHART_DMV_* were originally written for a Maryland CHART
+//  integration that was never finished — fetchDCCams() below uses WTOP's RSS feed instead.
+//  CHART_DMV_COUNTIES/CHART_DMV_ROUTES are now used for real by fetchMDIncidents() above;
+//  chartIncidentType()/isChartDMV() remain unused.
 // ╚══════════════════════════════════════════════════════════╝
 
 // Incident type → display category
@@ -3718,30 +3824,25 @@ function renderBriefBullets(bullets) {
 }
 
 // ╔══════════════════════════════════════════════════════════╗
-//  CONFIG CHECK
-// ╚══════════════════════════════════════════════════════════╝
-function checkConfig() {
-  if (!CONFIG.WMATA_KEY) document.getElementById('config-notice').style.display='flex';
-}
-
 // ╔══════════════════════════════════════════════════════════╗
 //  INIT
 // ╚══════════════════════════════════════════════════════════╝
 async function init() {
   startClock();
   setDailyQuote();
-  checkConfig();
 
   fetchWeather();
   fetchAirQuality();
   fetchNWSAlerts();
   fetchIncidents();
+  fetchMDIncidents();
+  fetchVAIncidents();
   fetchTide();
   fetchWMATA();
   fetchCircuitMap().then(() => fetchWMATALiveMap());
   renderMetrobusSchedule();
   setDot('wmata-dot','amber');
-  renderTravelTimes();
+  fetchMDTravelTimes().then(renderTravelTimes); // populate live MD segments before first render
   fetchEvents();
   fetchSFD();
   fetchSeismic();
@@ -3754,7 +3855,9 @@ async function init() {
   setInterval(fetchAirQuality,      CONFIG.REFRESH_WEATHER_MS);
   setInterval(fetchNWSAlerts,       5*60*1000);
   setInterval(fetchIncidents,       CONFIG.REFRESH_INCIDENTS_MS);
-  setInterval(renderTravelTimes,    CONFIG.REFRESH_TT_MS);
+  setInterval(fetchMDIncidents,     CONFIG.REFRESH_INCIDENTS_MS);
+  setInterval(fetchVAIncidents,     CONFIG.REFRESH_INCIDENTS_MS);
+  setInterval(() => fetchMDTravelTimes().then(renderTravelTimes), CONFIG.REFRESH_TT_MS);
   setInterval(fetchWMATA,           CONFIG.REFRESH_WMATA_MS);
   setInterval(fetchWMATALiveMap,    15*1000);   // train positions every 15s
   setInterval(renderMetrobusSchedule, 60*1000);

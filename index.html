@@ -266,6 +266,7 @@
   .tt-row:last-child { border-bottom:none; }
   .tt-row:hover { background:var(--bg3); }
   .tt-tag  { font-size:9px; font-weight:700; letter-spacing:0.05em; color:var(--gold); white-space:nowrap; }
+  .dir-arrow { vertical-align:-1px; }
   .tt-name { font-size:10px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .tt-cur  { font-size:17px; font-weight:700; color:var(--text-bright); text-align:right; white-space:nowrap; }
   .tt-cur-unit { font-size:9px; color:var(--text-dim); font-weight:400; }
@@ -1842,24 +1843,38 @@ function renderIncidentsDC(items, source) {
   }).join('');
 }
 
+// Shared direction-indicator icon — a single solid triangle rotated per direction, so all
+// four directions render with identical weight/size instead of relying on font glyphs
+// (Unicode →/← lose their arrowhead to anti-aliasing at small sizes in JetBrains Mono and
+// read as a bare hyphen, while ↑/↓ don't — this sidesteps font rendering entirely).
+// Valid as a nested element in both HTML and SVG contexts. Same icon used on goatvision-seattle.
+const DIR_ROTATE = { N:-90, S:90, E:0, W:180 };
+function dirArrowSVG(letter, size, color, x, y) {
+  const rot = DIR_ROTATE[letter];
+  if (rot == null) return '';
+  const px = x != null ? ` x="${x}"` : '';
+  const py = y != null ? ` y="${y}"` : '';
+  return `<svg class="dir-arrow"${px}${py} width="${size||9}" height="${size||9}" viewBox="0 0 10 10" style="transform:rotate(${rot}deg);transform-origin:center"><polygon points="1.5,1.5 8.5,5 1.5,8.5" fill="${color||'currentColor'}"/></svg>`;
+}
+
 // ╔══════════════════════════════════════════════════════════╗
 //  HIGHWAY TRAVEL TIMES — modeled (no public DMV API)
 //  Honest time-of-day + weather model. Labels as EST.
 // ╚══════════════════════════════════════════════════════════╝
 const DMV_ROUTES = [
-  { id:'i495-n',  road:'I-495', dir:'↑', name:'Beltway — Northern Arc (MD)',              avgMin:28 },
-  { id:'i495-s',  road:'I-495', dir:'↓', name:'Beltway — Southern Arc (VA)',               avgMin:26 },
-  { id:'i95-n',   road:'I-95',  dir:'↑', name:'I-95 North (Springfield → DC → Baltimore)', avgMin:38 },
-  { id:'i95-s',   road:'I-95',  dir:'↓', name:'I-95 South (Baltimore → DC → Fredksbg)',    avgMin:55 },
-  { id:'i66-e',   road:'I-66',  dir:'→', name:'I-66 East (Fairfax to DC)',                 avgMin:20 },
-  { id:'i66-w',   road:'I-66',  dir:'←', name:'I-66 West (DC to Fairfax)',                 avgMin:20 },
-  { id:'i270-s',  road:'I-270', dir:'↓', name:'I-270 South (Frederick to Beltway)',        avgMin:40 },
-  { id:'i270-n',  road:'I-270', dir:'↑', name:'I-270 North (Beltway to Frederick)',        avgMin:40 },
-  { id:'us50-e',  road:'US-50', dir:'→', name:'US-50 East (DC to Annapolis / Bay Bridge)', avgMin:35 },
-  { id:'i295-s',  road:'I-295', dir:'↓', name:'I-295 / BW Pkwy (DC to Baltimore)',        avgMin:42 },
-  { id:'i695-e',  road:'I-695', dir:'→', name:'I-695 Baltimore Beltway — East',            avgMin:22 },
-  { id:'i695-w',  road:'I-695', dir:'←', name:'I-695 Baltimore Beltway — West',            avgMin:22 },
-  { id:'i83-s',   road:'I-83',  dir:'↓', name:'I-83 / JFX (PA line to Baltimore)',         avgMin:25 },
+  { id:'i495-n',  road:'I-495', dir:'N', name:'Beltway — Northern Arc (MD)',              avgMin:28 },
+  { id:'i495-s',  road:'I-495', dir:'S', name:'Beltway — Southern Arc (VA)',               avgMin:26 },
+  { id:'i95-n',   road:'I-95',  dir:'N', name:'I-95 North (Springfield → DC → Baltimore)', avgMin:38 },
+  { id:'i95-s',   road:'I-95',  dir:'S', name:'I-95 South (Baltimore → DC → Fredksbg)',    avgMin:55 },
+  { id:'i66-e',   road:'I-66',  dir:'E', name:'I-66 East (Fairfax to DC)',                 avgMin:20 },
+  { id:'i66-w',   road:'I-66',  dir:'W', name:'I-66 West (DC to Fairfax)',                 avgMin:20 },
+  { id:'i270-s',  road:'I-270', dir:'S', name:'I-270 South (Frederick to Beltway)',        avgMin:40 },
+  { id:'i270-n',  road:'I-270', dir:'N', name:'I-270 North (Beltway to Frederick)',        avgMin:40 },
+  { id:'us50-e',  road:'US-50', dir:'E', name:'US-50 East (DC to Annapolis / Bay Bridge)', avgMin:35 },
+  { id:'i295-s',  road:'I-295', dir:'S', name:'I-295 / BW Pkwy (DC to Baltimore)',        avgMin:42 },
+  { id:'i695-e',  road:'I-695', dir:'E', name:'I-695 Baltimore Beltway — East',            avgMin:22 },
+  { id:'i695-w',  road:'I-695', dir:'W', name:'I-695 Baltimore Beltway — West',            avgMin:22 },
+  { id:'i83-s',   road:'I-83',  dir:'S', name:'I-83 / JFX (PA line to Baltimore)',         avgMin:25 },
 ];
 
 function getModeledMultiplier() {
@@ -1927,7 +1942,7 @@ async function renderTravelTimes() {
       ? `90d avg: ${baseline.avg}m`
       : `avg ${r.AverageTime}m`;
     html += `<div class="tt-row" id="tt-row-${r.id}">
-      <span class="tt-tag">${r.road} ${r.dir}</span>
+      <span class="tt-tag">${r.road} ${dirArrowSVG(r.dir)}</span>
       <span class="tt-name">${r.name}</span>
       <span class="tt-cur">${r.CurrentTime}<span class="tt-cur-unit"> min</span></span>
       <span class="tt-avg">${avgDisplay}</span>
@@ -1995,20 +2010,20 @@ function updateTrafficMap() {
 
     return ratio <= 1.15 ? '#3dd62a' : ratio <= 1.65 ? '#f0a500' : '#dc2626';
   }
-  // [svgId, road, dir or null] — dir matches route .dir field (↑↓→←)
+  // [svgId, road, dir or null] — dir matches route .dir field (N/S/E/W)
   const segs = [
-    ['seg-i95-n',  'I-95',  '↑'],
-    ['seg-i95-s',  'I-95',  '↓'],
-    ['seg-495-w',  'I-495', '↑'],  // northern arc
-    ['seg-495-e',  'I-495', '↓'],  // southern arc
-    ['seg-695',    'I-695', '→'],  // east arc proxy
-    ['seg-i270',   'I-270', '↓'],  // south (peak direction)
-    ['seg-i66',    'I-66',  '→'],  // eastbound (peak)
-    ['seg-i83',    'I-83',  '↓'],
-    ['seg-us50',   'US-50', '→'],
-    ['seg-i97',    'US-50', '→'],  // I-97 proxy to US-50
-    ['seg-i295',   'I-295', '↓'],
-    ['seg-va267',  'I-66',  '→'],  // Dulles Toll Rd proxy
+    ['seg-i95-n',  'I-95',  'N'],
+    ['seg-i95-s',  'I-95',  'S'],
+    ['seg-495-w',  'I-495', 'N'],  // northern arc
+    ['seg-495-e',  'I-495', 'S'],  // southern arc
+    ['seg-695',    'I-695', 'E'],  // east arc proxy
+    ['seg-i270',   'I-270', 'S'],  // south (peak direction)
+    ['seg-i66',    'I-66',  'E'],  // eastbound (peak)
+    ['seg-i83',    'I-83',  'S'],
+    ['seg-us50',   'US-50', 'E'],
+    ['seg-i97',    'US-50', 'E'],  // I-97 proxy to US-50
+    ['seg-i295',   'I-295', 'S'],
+    ['seg-va267',  'I-66',  'E'],  // Dulles Toll Rd proxy
   ];
   const applyColors = () => {
     let hits = 0;
@@ -2518,15 +2533,15 @@ function renderWMATALiveMap(trains) {
 
     // Direction arrow from DirectionNum (1 = one way, 2 = other)
     const dir = t.DirectionNum;
-    let arrow = '·';
-    if      (lc==='RD') arrow = dir===1 ? '↓' : '↑';
-    else if (lc==='GR'||lc==='YL') arrow = dir===1 ? '↓' : '↑';
-    else if (lc==='BL'||lc==='OR'||lc==='SV') arrow = dir===1 ? '→' : '←';
+    let arrowDir = null;
+    if      (lc==='RD') arrowDir = dir===1 ? 'S' : 'N';
+    else if (lc==='GR'||lc==='YL') arrowDir = dir===1 ? 'S' : 'N';
+    else if (lc==='BL'||lc==='OR'||lc==='SV') arrowDir = dir===1 ? 'E' : 'W';
 
     const cars = t.CarCount > 0 ? t.CarCount : '';
     trainSVG += `<g class="wmata-train-pulse" transform="translate(${pos.x-9},${pos.y-6})">
       <rect width="18" height="12" rx="2" fill="${color}" opacity="0.95"/>
-      <text x="9" y="9" font-family="monospace" font-size="8" fill="#fff" text-anchor="middle" font-weight="700">${arrow}</text>
+      ${dirArrowSVG(arrowDir, 8, '#fff', 5, 2)}
     </g>`;
     if (cars) {
       trainSVG += `<text x="${pos.x}" y="${pos.y+22}" font-family="monospace" font-size="6" fill="${color}" text-anchor="middle" opacity="0.7">${cars}c</text>`;

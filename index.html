@@ -481,7 +481,7 @@
     .brand-goat, .brand-vision { font-size:15px; }
     .brand-city { display:none; }
     .header-right { flex-direction:column; align-items:flex-end; gap:2px; }
-    #header .header-right span:not(#sys-time) { display:none; }
+    #header .header-right span:not(#sys-time):not(#sys-time-wrap):not(.cond-sub) { display:none; }
     #sys-time { font-size:13px; }
     #conditions-content { display:grid; grid-template-columns:repeat(2,1fr); }
     .cond-cell { min-width:0; width:100%; }
@@ -530,7 +530,10 @@
     <span><span class="dot dot-gray"  id="tm-dot"></span> &#127915; Events</span>
     <span><span class="dot dot-gray"  id="seismic-dot"></span> &#127755; Seismic</span>
     <span><span class="dot dot-gray"  id="faa-dot"></span> &#9992; Airports</span>
-    <span id="sys-time">--:--:--</span>
+    <span id="sys-time-wrap" style="display:flex;flex-direction:column;align-items:center;gap:1px">
+      <span id="sys-time">--:--:--</span>
+      <span class="cond-sub" style="font-size:8px">DMV time</span>
+    </span>
   </div>
 </div>
 

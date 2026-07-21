@@ -1787,9 +1787,21 @@ function normalizeMDIncident(a) {
     meta:[a.County, a.Updated?new Date(a.Updated).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:false,timeZone:'America/New_York'}):null].filter(Boolean).join(' · ') };
 }
 function normalizeMDClosure(a) {
+  // StartTime/EndTime are daily recurring time-of-day strings ("20:00:00"), not dates —
+  // new Date("20:00:00") is Invalid Date. Created is the real epoch-ms field (confirmed
+  // against live data: StartTime is typeof "string", Created is typeof "number").
+  const isAllDay = a.StartTime==='00:00:00' && (a.EndTime==='23:59:00'||a.EndTime==='23:59:59');
+  const fmtTime = t => {
+    if (!t) return null;
+    const [h,m] = t.split(':').map(Number);
+    const h12 = h%12===0?12:h%12;
+    return `${h12}:${String(m).padStart(2,'0')} ${h>=12?'PM':'AM'}`;
+  };
+  const window = !isAllDay && a.StartTime && a.EndTime ? `${fmtTime(a.StartTime)}–${fmtTime(a.EndTime)} daily` : null;
+  const since = a.Created ? `since ${new Date(a.Created).toLocaleDateString('en-US',{month:'short',day:'numeric'})}` : null;
   return { severity:'medium', sourceLabel:'MD', road:a.RouteName||a.Route||'MD Road',
     description:a.Description||'Closure',
-    meta:[a.County, a.StartTime?`from ${new Date(a.StartTime).toLocaleDateString('en-US',{month:'short',day:'numeric'})}`:null].filter(Boolean).join(' · ') };
+    meta:[a.County, window, since].filter(Boolean).join(' · ') };
 }
 function normalizeVAIncident(f) {
   const p=f.properties||{};
@@ -3126,31 +3138,42 @@ async function fetchSFD() {
         { signal:AbortSignal.timeout(6000) }),
     ]);
 
-    const railData = railRes.ok ? await railRes.json() : { Incidents: [] };
-    const busData  = busRes.ok  ? await busRes.json()  : { BusIncidents: [] };
+    if (!railRes.ok && !busRes.ok) {
+      // Both calls failed — this is "we don't know," not "zero incidents". Don't let it
+      // fall through to the same all-clear state a genuinely empty result would show.
+      throw new Error(`HTTP ${railRes.status}/${busRes.status}`);
+    }
 
-    const railInc = railData.Incidents   || [];
-    const busInc  = busData.BusIncidents || [];
+    // null (not []) marks a feed that failed to load, so renderSFD can tell "unavailable"
+    // apart from "loaded and genuinely empty" instead of collapsing both into a false all-clear.
+    const railInc = railRes.ok ? ((await railRes.json()).Incidents   || []) : null;
+    const busInc  = busRes.ok  ? ((await busRes.json()).BusIncidents || []) : null;
 
-    sfdDispatches = [...railInc, ...busInc];
+    sfdDispatches = [...(railInc||[]), ...(busInc||[])];
     _brief.sfd = true;
 
     renderSFD(railInc, busInc);
 
-    const total = railInc.length + busInc.length;
-    setDot('sfd-dot', total === 0 ? 'green' : railInc.some(i=>i.IncidentType==='Alert') ? 'red' : 'amber');
+    const total = (railInc?.length||0) + (busInc?.length||0);
+    setDot('sfd-dot', total === 0 ? 'green' : (railInc||[]).some(i=>i.IncidentType==='Alert') ? 'red' : 'amber');
+    const partial = (railInc===null || busInc===null) ? ' · one feed unavailable' : '';
     document.getElementById('sfd-ts').textContent =
-      `Refreshed ${ts()} · ${total} active alert${total!==1?'s':''}`;
+      `Refreshed ${ts()} · ${total} active alert${total!==1?'s':''}${partial}`;
   } catch(e) {
-    setDot('sfd-dot','amber');
+    setDot('sfd-dot','gray');
     document.getElementById('sfd-content').innerHTML =
-      `<div class="error-msg">&#9888; WMATA incident feed failed: ${e.message}</div>`;
+      `<div class="loading-msg">WMATA incident data unavailable this refresh &mdash; check <a href="https://www.wmata.com/service/status/" target="_blank" rel="noopener" style="color:var(--text-dim)">wmata.com/service/status</a> for current conditions.</div>`;
+    document.getElementById('sfd-ts').textContent = 'Feed unavailable';
   }
 }
+// railInc/busInc: an array (real data, possibly empty) or null (that feed failed to load —
+// rendered as its own "unavailable" notice, never silently folded into an all-clear state).
 function renderSFD(railInc, busInc) {
-  const total = railInc.length + busInc.length;
+  const railFailed = railInc === null, busFailed = busInc === null;
+  const rail = railInc || [], bus = busInc || [];
+  const total = rail.length + bus.length;
 
-  if (total === 0) {
+  if (total === 0 && !railFailed && !busFailed) {
     document.getElementById('sfd-content').innerHTML =
       `<div class="nws-no-alerts"><span class="sev-green">&#10003;</span>&nbsp; No active WMATA rail or bus incidents. All lines and routes operating normally.</div>
        <div style="padding:6px 12px;font-size:8px;color:var(--text-dim)">Source: WMATA Incidents API &middot; Rail + Bus &middot; <a href="https://www.wmata.com/service/status/" target="_blank" rel="noopener" style="color:var(--text-dim)">wmata.com/service/status &#8599;</a></div>`;
@@ -3169,9 +3192,11 @@ function renderSFD(railInc, busInc) {
 
   let html = '';
 
-  if (railInc.length) {
-    html += `<div class="seismic-section-label">&#9410; Rail Service Alerts (${railInc.length})</div>`;
-    html += railInc.map(inc => {
+  if (railFailed) {
+    html += `<div class="loading-msg" style="padding:8px 12px">&#9888; Rail incident data unavailable this refresh.</div>`;
+  } else if (rail.length) {
+    html += `<div class="seismic-section-label">&#9410; Rail Service Alerts (${rail.length})</div>`;
+    html += rail.map(inc => {
       const type   = inc.IncidentType || 'Alert';
       const desc   = inc.Description  || '—';
       const lines  = (inc.LinesAffected || '--').replace(/;/g,',').replace(/,\s*$/,'').trim();
@@ -3200,9 +3225,11 @@ function renderSFD(railInc, busInc) {
   }
 
   // ── Bus incidents ────────────────────────────────────────────
-  if (busInc.length) {
-    html += `<div class="seismic-section-label">&#128652; Bus Service Alerts (${busInc.length})</div>`;
-    html += busInc.slice(0,15).map(inc => {
+  if (busFailed) {
+    html += `<div class="loading-msg" style="padding:8px 12px">&#9888; Bus incident data unavailable this refresh.</div>`;
+  } else if (bus.length) {
+    html += `<div class="seismic-section-label">&#128652; Bus Service Alerts (${bus.length})</div>`;
+    html += bus.slice(0,15).map(inc => {
       const type  = inc.IncidentType || 'Alert';
       const desc  = inc.Description  || '—';
       const routes= inc.RoutesAffected || '—';

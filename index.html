@@ -1914,7 +1914,10 @@ async function fetchMDIncidents() {
     ]);
     const incData = incRes.ok ? await incRes.json() : null;
     const cloData = cloRes.ok ? await cloRes.json() : null;
-    const inScope = a => CHART_DMV_COUNTIES.has(a.County||'') || CHART_DMV_ROUTES.test(a.RouteName||a.Route||'');
+    const inScope = a => {
+      const county = (a.County||'').replace(/\s+County$/i, '').trim();
+      return CHART_DMV_COUNTIES.has(county) || CHART_DMV_ROUTES.test(a.RouteName||a.Route||'');
+    };
     const incItems = (incData?.features||[]).map(f=>f.attributes).filter(inScope).map(normalizeMDIncident);
     const cloItems = (cloData?.features||[]).map(f=>f.attributes).filter(inScope).map(normalizeMDClosure);
     _regionalIncidents.md = [...incItems, ...cloItems];

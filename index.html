@@ -1626,9 +1626,9 @@ function renderConditions(data) {
     // 1. Conditions icon + description
     { label:'Conditions', value:wmoIcon(code), sub:wmoDesc(code), sev:sevClass(ov) },
 
-    // 2. Temperature
+    // 2. Temperature — sub left blank; the weather description already has its own cell above
     { label:'Temperature', value:`${temp}`, unit:'°F',
-      sub: wmoDesc(code),
+      sub: '&nbsp;',
       sev: temp>=95?'sev-red':temp>=85?'sev-amber':temp<=28?'sev-red':temp<=40?'sev-amber':'sev-green' },
 
     // 3. Feels Like — DC heat index / wind chill matters enormously

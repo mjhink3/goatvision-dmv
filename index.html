@@ -1181,7 +1181,6 @@
 //  CONFIG — fill in keys before deploying
 // ╚══════════════════════════════════════════════════════════╝
 const CONFIG = {
-  TICKETMASTER_KEY: 'EqgsmyF0kcYqZSX1w3tHMFtAVo1kTn9X',
   SUPABASE_URL:   'https://scsdstpabzkiqnvsskts.supabase.co',
   SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNjc2RzdHBhYnpraXFudnNza3RzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3MTUxNzcsImV4cCI6MjA5NTI5MTE3N30.HMo41UCsWsCwk75GxoujLcIlwlZDhXPNnLZ1x7K8VV8',
   REFRESH_WEATHER_MS:   5 * 60 * 1000,
@@ -2850,14 +2849,11 @@ function getSportEmoji(ev) {
   return '🎟️';
 }
 async function fetchTicketmaster() {
-  if (!CONFIG.TICKETMASTER_KEY) return;
   const now=new Date(),end=new Date(now.getTime()+14*86400000);
   const fmt=d=>d.toISOString().split('T')[0];
-  // Fetch DC events
-  const urlDC   = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${CONFIG.TICKETMASTER_KEY}&city=Washington&stateCode=DC&radius=12&unit=miles&size=40&sort=date,asc&startDateTime=${fmt(now)}T00:00:00Z&endDateTime=${fmt(end)}T23:59:59Z`;
-  // Fetch Baltimore events
-  const urlBalt = `https://app.ticketmaster.com/discovery/v2/events.json?apikey=${CONFIG.TICKETMASTER_KEY}&city=Baltimore&stateCode=MD&radius=15&unit=miles&size=20&sort=date,asc&startDateTime=${fmt(now)}T00:00:00Z&endDateTime=${fmt(end)}T23:59:59Z`;
-  const url = urlDC; // primary; Baltimore fetched separately below
+  // Fetch DC and Baltimore events via the server-side proxy — key lives in process.env, never shipped to the browser
+  const urlDC   = `/api/ticketmaster?market=dc`;
+  const urlBalt = `/api/ticketmaster?market=balt`;
   const LARGE_DC   = ['capital one arena','nats park','nationals park','audi field','rfk','northwest stadium','constitution hall','warner theatre','the anthem','kennedy center'];
   const LARGE_BALT = ['camden yards','m&t bank','pier six','royal farms arena','cfd bank arena','lyric opera'];
 

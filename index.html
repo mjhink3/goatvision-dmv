@@ -3568,21 +3568,27 @@ async function fetchAmtrak() {
 // ╚══════════════════════════════════════════════════════════╝
 async function fetchBayBridge() {
   const el=document.getElementById('baybridge-content');
-  const MDTA_URL='https://www.mdta.maryland.gov/Bay_Bridge/';
-  // Try to scrape the MDTA page for keywords
+  // Was scraping mdta.maryland.gov/Bay_Bridge/ for keywords — that URL now 404s (MDTA moved
+  // Bay Bridge status to baybridge.maryland.gov), and even the correct page doesn't contain
+  // the keywords being scanned for, so this path was silently falling back almost every load.
+  // Fixed by filtering the same MD CHART Closures feed already used by fetchMDIncidents() for
+  // records tagged LocationAlias === "BAY BRIDGE" — structured data, no scraping, no new endpoint.
+  const CLO_URL = 'https://chartimap1.sha.maryland.gov/arcgis/rest/services/CHART/Closures/MapServer/0/query?where=1%3D1&outFields=*&f=json';
   try {
-    const res=await proxiedFetch(MDTA_URL,{signal:AbortSignal.timeout(6000)});
-    const text=await res.text();
-    const lc=text.toLowerCase();
-    const isClosed=lc.includes('bridge is closed')||lc.includes('closed to traffic')||lc.includes('all lanes closed');
-    const isRestricted=lc.includes('restricted')||lc.includes('high profile')||lc.includes('wind restriction');
+    const res=await fetch(CLO_URL,{signal:AbortSignal.timeout(6000)});
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    const bayRecords=(data.features||[]).map(f=>f.attributes).filter(a=>(a.LocationAlias||'').toUpperCase()==='BAY BRIDGE');
+    const text=bayRecords.map(a=>`${a.Description||''} ${a.LanesClosed||''}`).join(' ').toLowerCase();
+    const isClosed=text.includes('bridge is closed')||text.includes('closed to traffic')||text.includes('all lanes closed');
+    const isRestricted=!isClosed && bayRecords.length>0;
     bayBridgeOpen=!isClosed;
     if (isClosed) {
-      el.innerHTML=`<div id="baybridge-content"><div class="baybridge-status sev-red">CLOSED</div><div class="baybridge-sub">Source: MDTA website</div><div class="baybridge-detail">The Chesapeake Bay Bridge is currently closed to traffic. Check MDTA for updates.</div></div>`;
+      el.innerHTML=`<div id="baybridge-content"><div class="baybridge-status sev-red">CLOSED</div><div class="baybridge-sub">Source: MDOT SHA CHART Closures</div><div class="baybridge-detail">The Chesapeake Bay Bridge is currently closed to traffic. Check MDTA for updates.</div></div>`;
     } else if (isRestricted) {
-      el.innerHTML=`<div id="baybridge-content"><div class="baybridge-status sev-amber">RESTRICTED</div><div class="baybridge-sub">Source: MDTA website</div><div class="baybridge-detail">Wind or height restrictions may be in effect. High-profile vehicles should check MDTA before travel.</div></div>`;
+      el.innerHTML=`<div id="baybridge-content"><div class="baybridge-status sev-amber">RESTRICTED</div><div class="baybridge-sub">Source: MDOT SHA CHART Closures</div><div class="baybridge-detail">${bayRecords.map(a=>a.Description).filter(Boolean).join(' · ') || 'A planned closure or lane restriction is in effect.'} High-profile vehicles should check MDTA before travel.</div></div>`;
     } else {
-      el.innerHTML=`<div id="baybridge-content"><div class="baybridge-status sev-green">OPEN</div><div class="baybridge-sub">Source: MDTA website</div><div class="baybridge-detail">No closures or restrictions detected. Both spans open to traffic.</div></div>`;
+      el.innerHTML=`<div id="baybridge-content"><div class="baybridge-status sev-green">OPEN</div><div class="baybridge-sub">Source: MDOT SHA CHART Closures</div><div class="baybridge-detail">No closures or restrictions detected. Both spans open to traffic.</div></div>`;
     }
   } catch(e) {
     // Static fallback: wind advisory model from weather

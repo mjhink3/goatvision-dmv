@@ -280,7 +280,7 @@
   }
   .tt-filter-btn:hover, .tt-filter-btn.active { background:var(--maroon-dim); border-color:var(--maroon); color:var(--text-bright); }
   #tt-list { max-height:420px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
-  .tt-row { display:grid; grid-template-columns:52px 1fr auto auto 70px 80px; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--border); transition:background 0.1s; }
+  .tt-row { display:grid; grid-template-columns:76px 1fr auto auto 70px 80px; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--border); transition:background 0.1s; }
   .tt-row:last-child { border-bottom:none; }
   .tt-row:hover { background:var(--bg3); }
   .tt-tag  { font-size:9px; font-weight:700; letter-spacing:0.05em; color:var(--gold); white-space:nowrap; }
@@ -1977,16 +1977,16 @@ function dirArrowSVG(letter, size, color, x, y) {
 const DMV_ROUTES = [
   { id:'i495-n',  road:'I-495', dir:'N', name:'Beltway — Northern Arc (MD)',              avgMin:28 },
   { id:'i495-s',  road:'I-495', dir:'S', name:'Beltway — Southern Arc (VA)',               avgMin:26 },
-  { id:'i95-n',   road:'I-95',  dir:'N', name:'I-95 North (Springfield → DC → Baltimore)', avgMin:38 },
-  { id:'i95-s',   road:'I-95',  dir:'S', name:'I-95 South (Baltimore → DC → Fredksbg)',    avgMin:55 },
-  { id:'i66-e',   road:'I-66',  dir:'E', name:'I-66 East (Fairfax to DC)',                 avgMin:20 },
-  { id:'i66-w',   road:'I-66',  dir:'W', name:'I-66 West (DC to Fairfax)',                 avgMin:20 },
-  { id:'i270-s',  road:'I-270', dir:'S', name:'I-270 South (Frederick to Beltway)',        avgMin:40 },
-  { id:'i270-n',  road:'I-270', dir:'N', name:'I-270 North (Beltway to Frederick)',        avgMin:40 },
-  { id:'us50-e',  road:'US-50', dir:'E', name:'US-50 East (DC to Annapolis / Bay Bridge)', avgMin:35 },
+  { id:'i95-n',   road:'I-95',  dir:'N', name:'Springfield → DC → Baltimore',              avgMin:38 },
+  { id:'i95-s',   road:'I-95',  dir:'S', name:'Baltimore → DC → Fredksbg',                 avgMin:55 },
+  { id:'i66-e',   road:'I-66',  dir:'E', name:'Fairfax to DC',                             avgMin:20 },
+  { id:'i66-w',   road:'I-66',  dir:'W', name:'DC to Fairfax',                             avgMin:20 },
+  { id:'i270-s',  road:'I-270', dir:'S', name:'Frederick to Beltway',                      avgMin:40 },
+  { id:'i270-n',  road:'I-270', dir:'N', name:'Beltway to Frederick',                      avgMin:40 },
+  { id:'us50-e',  road:'US-50', dir:'E', name:'DC to Annapolis / Bay Bridge',              avgMin:35 },
   { id:'i295-s',  road:'I-295', dir:'S', name:'I-295 / BW Pkwy (DC to Baltimore)',        avgMin:42 },
-  { id:'i695-e',  road:'I-695', dir:'E', name:'I-695 Baltimore Beltway — East',            avgMin:22 },
-  { id:'i695-w',  road:'I-695', dir:'W', name:'I-695 Baltimore Beltway — West',            avgMin:22 },
+  { id:'i695-e',  road:'I-695', dir:'E', name:'Baltimore Beltway',                         avgMin:22 },
+  { id:'i695-w',  road:'I-695', dir:'W', name:'Baltimore Beltway',                         avgMin:22 },
   { id:'i83-s',   road:'I-83',  dir:'S', name:'I-83 / JFX (PA line to Baltimore)',         avgMin:25 },
 ];
 
@@ -2113,7 +2113,7 @@ async function renderTravelTimes() {
       ? '<span class="dot dot-green" title="Live: MDOT SHA CHART" style="width:5px;height:5px;margin-right:4px;"></span>'
       : '<span class="dot dot-amber" title="Modeled — no live source for this route" style="width:5px;height:5px;margin-right:4px;"></span>';
     html += `<div class="tt-row" id="tt-row-${r.id}">
-      <span class="tt-tag">${srcDot}${r.road} ${dirArrowSVG(r.dir)}</span>
+      <span class="tt-tag">${srcDot}${r.road} ${r.dir} ${dirArrowSVG(r.dir)}</span>
       <span class="tt-name">${r.name}</span>
       <span class="tt-cur">${r.CurrentTime}<span class="tt-cur-unit"> min</span></span>
       <span class="tt-avg">${avgDisplay}</span>

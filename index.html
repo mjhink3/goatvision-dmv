@@ -550,6 +550,7 @@
     <span><span class="dot dot-gray"  id="seismic-dot"></span> &#127755; Seismic</span>
     <span><span class="dot dot-gray"  id="faa-dot"></span> &#9992; Airports</span>
     <span id="sys-time-wrap" style="display:flex;flex-direction:column;align-items:center;gap:1px">
+      <span id="sys-date" class="cond-sub" style="font-size:9px">--</span>
       <span id="sys-time">--:--:--</span>
       <span class="cond-sub" style="font-size:8px">DMV time</span>
     </span>
@@ -1455,6 +1456,12 @@ function ts(d) {
     timeZone:'America/New_York'
   });
 }
+function dateStr(d) {
+  return (d||new Date()).toLocaleDateString('en-US',{
+    weekday:'long', month:'long', day:'numeric',
+    timeZone:'America/New_York'
+  });
+}
 function setDot(id, color) {
   const el = document.getElementById(id);
   if (!el) return;
@@ -1491,7 +1498,11 @@ function aqiLevel(aqi) {
 // ╚══════════════════════════════════════════════════════════╝
 function startClock() {
   const el = document.getElementById('sys-time');
-  const tick = () => { if (el) el.textContent = ts(); };
+  const dateEl = document.getElementById('sys-date');
+  const tick = () => {
+    if (el) el.textContent = ts();
+    if (dateEl) dateEl.textContent = dateStr();
+  };
   tick(); setInterval(tick, 1000);
 }
 function setDailyQuote() {

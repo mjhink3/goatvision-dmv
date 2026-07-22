@@ -545,7 +545,9 @@
     <span><span class="dot dot-gray"  id="nws-dot"></span> &#128680; NWS</span>
     <span><span class="dot dot-gray"  id="traffic-dot"></span> &#9888; Incidents</span>
     <span><span class="dot dot-gray"  id="wmata-dot"></span> &#9410; Metro</span>
+    <span><span class="dot dot-gray"  id="wmata-map-dot"></span> &#128651; Train Map</span>
     <span><span class="dot dot-gray"  id="sfd-dot"></span> &#128680; Alerts</span>
+    <span><span class="dot dot-gray"  id="amtrak-dot"></span> &#128647; Amtrak</span>
     <span><span class="dot dot-gray"  id="tm-dot"></span> &#127915; Events</span>
     <span><span class="dot dot-gray"  id="faa-dot"></span> &#9992; Airports</span>
     <span><span class="dot dot-gray"  id="seismic-dot"></span> &#127755; Seismic</span>
@@ -2574,10 +2576,12 @@ async function fetchWMATALiveMap() {
     renderWMATALiveMap(data.TrainPositions || []);
     const tsEl = document.getElementById('wmata-map-ts');
     if (tsEl) tsEl.textContent = `Updated ${ts()} · ${(data.TrainPositions||[]).length} trains`;
+    setDot('wmata-map-dot', 'green');
   } catch(e) {
     el.innerHTML = `<div class="error-msg">&#9888; Train positions unavailable: ${e.message}</div>`;
     const tsEl = document.getElementById('wmata-map-ts');
     if (tsEl) tsEl.textContent = 'Feed error';
+    setDot('wmata-map-dot', 'red');
   }
 }
 
@@ -3474,6 +3478,7 @@ async function fetchAmtrak() {
       const rawCount = Object.values(data).flat().length;
       el.innerHTML = `<div class="loading-msg">No departures at WAS right now (${rawCount} total trains in feed). Check <a href="https://www.amtrak.com/track-your-train.html" target="_blank" style="color:var(--amber)">Amtrak.com</a> for current status.</div>`;
       document.getElementById('amtrak-ts').textContent = `Checked ${ts()} · ${rawCount} trains in feed`;
+      setDot('amtrak-dot', 'green');
       return;
     }
 
@@ -3496,6 +3501,7 @@ async function fetchAmtrak() {
       let delayMin = null;
       if (estDep && schDep)  delayMin = Math.round((new Date(estDep)  - new Date(schDep))  / 60000);
       if (postDep && schDep) delayMin = Math.round((new Date(postDep) - new Date(schDep)) / 60000);
+      t._delayMin = delayMin;
 
       // Status
       let statusHtml;
@@ -3550,9 +3556,13 @@ async function fetchAmtrak() {
     document.getElementById('amtrak-ts').textContent =
       `Refreshed ${ts()} · ${trains.length} trains · ${onTime} on time${delayed>0?' · '+delayed+' delayed':''}`;
 
+    const anyLate = trains.some(t => (t._delayMin || 0) > 10);
+    const anyWarn = trains.some(t => (t._delayMin || 0) > 0);
+    setDot('amtrak-dot', anyLate ? 'red' : anyWarn ? 'amber' : 'green');
   } catch(e) {
     el.innerHTML = `<div class="error-msg">&#9888; Amtrak feed failed: ${e.message}</div>`;
     document.getElementById('amtrak-ts').textContent = `Feed error ${ts()}`;
+    setDot('amtrak-dot', 'red');
   }
 }
 

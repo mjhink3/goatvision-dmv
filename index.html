@@ -102,9 +102,9 @@
   .refresh-ts  { font-size:10px; color:var(--text-dim); font-weight:400; letter-spacing:0; }
 
   /* -- CONDITIONS STRIP -- */
-  #conditions-content { display:flex; flex-wrap:wrap; padding:0; overflow:hidden; }
+  #conditions-content { display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); padding:0; overflow:hidden; }
   .cond-cell {
-    flex:1 1 90px; min-width:0; padding:8px 12px;
+    min-width:0; padding:8px 12px;
     border-right:1px solid var(--border);
     display:flex; flex-direction:column; gap:3px;
   }
@@ -505,8 +505,8 @@
     #conditions-content { display:grid; grid-template-columns:repeat(2,1fr); }
     .cond-cell { min-width:0; width:100%; }
     .cond-value { font-size:16px; }
-    /* Hide AQI/Smoke/UV on mobile — show core 8 cells only */
-    #conditions-content .cond-cell:nth-child(n+9) { display:none; }
+    /* Hide AQI/Smoke/UV on mobile — show core 9 cells only (added Monument? shifted this by one) */
+    #conditions-content .cond-cell:nth-child(n+10) { display:none; }
     #extras-grid { grid-template-columns:1fr; }
     .wmata-cols { grid-template-columns:1fr; }
     #tt-filters { display:none; }
@@ -1543,19 +1543,14 @@ async function fetchWeather() {
   }
 }
 
-// ── WMO icon (matches Seattle version) ──────────────────────
-function wmoIcon(code) {
-  if (!code)       return '☀️';
-  if (code>=95)    return '⛈️';
-  if (code>=80)    return '🌧️';
-  if (code>=71)    return '❄️';
-  if (code>=61)    return '🌧️';
-  if (code>=51)    return '🌦️';
-  if (code>=45)    return '🌫️';
-  if (code>=3)     return '☁️';
-  if (code>=2)     return '⛅';
-  return '☀️';
-}
+// ── WMO icon — shared exact-code table, matches Philly/Seattle exactly ──
+const WMO_ICON = {
+  0:'☀',1:'🌤',2:'⛅',3:'☁',45:'🌫',48:'🌫',
+  51:'🌦',53:'🌦',55:'🌧',61:'🌧',63:'🌧',65:'🌧',66:'🌨',67:'🌨',
+  71:'🌨',73:'❄',75:'❄',77:'❄',80:'🌦',81:'🌧',82:'⛈',85:'🌨',86:'🌨',
+  95:'⛈',96:'⛈',99:'⛈',
+};
+function wmoIcon(code) { return WMO_ICON[code] || '?'; }
 function sevClass(ov) {
   if (ov>=0.6) return 'sev-red';
   if (ov>=0.3) return 'sev-amber';
@@ -1649,11 +1644,19 @@ function renderConditions(data) {
       sub: parseFloat(vis)<1?'Very Low':parseFloat(vis)<3?'Reduced':'Clear',
       sev: parseFloat(vis)<1?'sev-red':parseFloat(vis)<3?'sev-amber':'sev-green' },
 
-    // 8. Sunrise / Sunset
+    // 8. Monument? — Washington Monument visibility, same cloud_cover heuristic
+    // Philly (Rocky Steps?) and Seattle (Rainier?) already use for their own landmark
+    (() => {
+      if (wmoSeverity(code)>=0.5 || clouds>75) return { label:'Monument?', value:'Hidden',  sub:'Sky obscured',     sev:'sev-red',   smallVal:true };
+      if (clouds>40)                            return { label:'Monument?', value:'Hazy',    sub:`${clouds}% clouds`, sev:'sev-amber', smallVal:true };
+      return                                           { label:'Monument?', value:'Visible', sub:`${clouds}% clouds`, sev:'sev-green', smallVal:true };
+    })(),
+
+    // 9. Sunrise / Sunset
     { label:'Sunrise', value:sunrise, sub:`Sets ${sunset}`, sev:'sev-green', smallVal:true },
   ];
 
-  // 9-10. AQI + Smoke — appended once aqiData arrives (same as Seattle pattern)
+  // 10-11. AQI + Smoke — appended once aqiData arrives (same as Seattle pattern)
   if (aqiData) {
     const aqi  = aqiData.us_aqi ?? null;
     const pm25 = aqiData.pm2_5  ?? null;
@@ -1667,7 +1670,7 @@ function renderConditions(data) {
       sev:   smokeFlag ? 'sev-amber' : 'sev-green', smallVal:true
     });
 
-    // 11. UV Index
+    // 12. UV Index
     const uvInfo = uvLabel(uv);
     cells.push({ label:'UV Index', value:uvInfo.label, sub:uvInfo.sub, sev:uvInfo.cls, smallVal:true });
   }

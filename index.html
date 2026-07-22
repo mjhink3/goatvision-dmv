@@ -102,9 +102,9 @@
   .refresh-ts  { font-size:10px; color:var(--text-dim); font-weight:400; letter-spacing:0; }
 
   /* -- CONDITIONS STRIP -- */
-  #conditions-content { display:grid; grid-template-columns:repeat(auto-fill, minmax(90px, 1fr)); padding:0; overflow:hidden; }
+  #conditions-content { display:flex; flex-wrap:wrap; padding:0; overflow:hidden; }
   .cond-cell {
-    min-width:0; padding:8px 12px;
+    flex:1; min-width:110px; padding:8px 12px;
     border-right:1px solid var(--border);
     display:flex; flex-direction:column; gap:3px;
   }

@@ -72,6 +72,21 @@
   #quote-strip .q-mark { color:var(--gold); font-size:16px; font-style:normal; flex-shrink:0; }
   #quote-strip .q-attr { color:var(--maroon); font-style:normal; font-weight:600; }
 
+  /* ── ON THIS DAY STRIP — separate DC/Baltimore rows, only rendered when that
+     market has a real dataset hit for today; matches events-panel market colors ── */
+  #otd-strip {
+    background: linear-gradient(90deg,#0e0408,#1a0510,#0e0408);
+    display: none; flex-direction: column;
+    font-size: 10px; color: var(--text-dim);
+  }
+  #otd-strip .otd-row { display:none; align-items:center; gap:8px; padding:7px 18px; border-bottom:1px solid var(--border); }
+  #otd-strip .otd-mark { font-size:12px; flex-shrink:0; }
+  #otd-strip a { color:inherit; text-decoration:none; border-bottom:1px dotted var(--text-dim); }
+  #otd-strip a:hover { border-bottom-style:solid; }
+  #otd-row-dc .otd-mark, #otd-row-dc .otd-year { color:#ab0003; }
+  #otd-row-balt .otd-mark, #otd-row-balt .otd-year { color:#df4601; }
+  #otd-row-dc .otd-year, #otd-row-balt .otd-year { font-weight:600; }
+
   /* ── CROSS-APP NAV STRIP ── */
   #citynav-strip {
     background: linear-gradient(90deg,#0e0408,#1a0510,#0e0408);
@@ -570,6 +585,18 @@
 <div id="quote-strip">
   <span class="q-mark">&#8220;</span>
   <span id="quote-text" style="flex:1">Loading&hellip;</span>
+</div>
+
+<!-- ═════════════════════════════════════════ ON THIS DAY ═══ -->
+<div id="otd-strip">
+  <div class="otd-row" id="otd-row-dc">
+    <span class="otd-mark">&#128197;</span>
+    <span id="otd-text-dc" style="flex:1"></span>
+  </div>
+  <div class="otd-row" id="otd-row-balt">
+    <span class="otd-mark">&#128197;</span>
+    <span id="otd-text-balt" style="flex:1"></span>
+  </div>
 </div>
 
 <div id="main">
@@ -1513,6 +1540,66 @@ function setDailyQuote() {
   const q = CITY_CONFIG.quotes[doy % CITY_CONFIG.quotes.length];
   const el = document.getElementById('quote-text');
   if (el) el.innerHTML = `${q.text} <span class="q-attr">&mdash; ${q.attr}</span>`;
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+//  ON THIS DAY — curated, static datasets; matched by month/day only, year ignored.
+//  DC and Baltimore are tracked as separate markets (same split as the Events panel),
+//  so each renders its own row independently — a date can show one row, both, or neither.
+// ╚══════════════════════════════════════════════════════════╝
+const ON_THIS_DAY_DC = [
+  { date:"01/26", year:1992, description:"The Washington Redskins defeated the Buffalo Bills 37–24 in Super Bowl XXVI at the Hubert H. Humphrey Metrodome. Mark Rypien was named MVP.", source:"https://www.commanders.com/team/history/super-bowl-xxvi" },
+  { date:"01/30", year:1983, description:"The Washington Redskins defeated the Miami Dolphins 27–17 in Super Bowl XVII at the Rose Bowl — the franchise's first Super Bowl title. John Riggins was named MVP.", source:"https://www.commanders.com/team/history/super-bowl-xvii" },
+  { date:"01/31", year:1988, description:"The Washington Redskins defeated the Denver Broncos 42–10 in Super Bowl XXII, scoring 42 unanswered points after trailing 10–0. Doug Williams, the first Black quarterback to start and win a Super Bowl, was named MVP.", source:"https://www.commanders.com/photos/a-look-back-at-super-bowl-xxii-11666180" },
+  { date:"04/14", year:1865, description:"President Abraham Lincoln was assassinated at Ford’s Theatre in Washington, D.C.", source:"https://fords.org/lincolns-assassination/" },
+  { date:"06/07", year:1978, description:"The Washington Bullets defeated the Seattle SuperSonics 105–99 in Game 7 on the road to win the NBA Finals 4 games to 3 — the franchise's only NBA championship.", source:"https://www.nba.com/game/was-vs-sea-0047700051" },
+  { date:"06/07", year:2018, description:"The Washington Capitals won their first Stanley Cup championship, clinching with a 4–3 victory over the Vegas Golden Knights in Las Vegas.", source:"https://www.nhl.com/news/capitals-raise-stanley-cup-championship-banner-300607450" },
+  { date:"08/24", year:1814, description:"Following the Battle of Bladensburg, British forces entered Washington and burned the Capitol and White House.", source:"https://www.nps.gov/stsp/learn/historyculture/1814-chesapeake-campaign.htm" },
+  { date:"08/28", year:1963, description:"An estimated 250,000 people attended the March on Washington for Jobs and Freedom in Washington, D.C. The National Park Service identifies it as the largest civil-rights gathering of its time.", source:"https://www.nps.gov/articles/march-on-washington.htm" },
+  { date:"09/11", year:2001, description:"American Airlines Flight 77 was hijacked and crashed into the Pentagon in Arlington, Virginia. The Department of Defense records 184 deaths at the Pentagon.", source:"https://www.defense.gov/Experience/Pentagon-Memorial/" },
+  { date:"10/10", year:2019, description:"The Washington Mystics defeated the Connecticut Sun 89–78 in Game 5 to win the franchise’s first WNBA championship.", source:"https://www.wnba.com/news/social-recap-the-washington-mystics-win-the-wnba-finals-2019" },
+  { date:"10/20", year:1996, description:"D.C. United defeated the LA Galaxy 3–2 in overtime on Eddie Pope's golden goal to win the inaugural MLS Cup.", source:"https://www.dcunited.com/news/birth-dynasty-story-1996-mls-cup-final" },
+  { date:"10/26", year:1997, description:"D.C. United defeated the Colorado Rapids 2–1 at RFK Stadium to win a second consecutive MLS Cup.", source:"https://www.dcunited.com/news/etcheverrys-favorite-rfk-memory-1997-mls-cup" },
+  { date:"11/14", year:2004, description:"D.C. United defeated the Kansas City Wizards 3–2 to win their fourth MLS Cup, scoring all three goals in a seven-minute span after trailing early.", source:"https://www.dcunited.com/news/eight-years-day-united-won-its-fourth-mls-cup" },
+  { date:"11/21", year:1999, description:"D.C. United defeated the LA Galaxy 2–0 at Foxboro Stadium to win their third MLS Cup.", source:"https://www.dcunited.com/news/something-you-never-forget-oral-history-dc-united-s-magical-1999-season" },
+  { date:"12/24", year:1973, description:"President Richard Nixon signed the District of Columbia Home Rule Act, creating a local government with an elected mayor and council for Washington, D.C.", source:"https://mayor.dc.gov/release/statement-mayor-bowser-50th-anniversary-dc-home-rule-act" },
+];
+const ON_THIS_DAY_BALT = [
+  { date:"01/28", year:2001, description:"The Baltimore Ravens defeated the New York Giants 34–7 in Super Bowl XXXV — the franchise's first championship. Ray Lewis was named MVP.", source:"https://www.baltimoreravens.com/team/history/super-bowl-xxxv" },
+  { date:"02/03", year:2013, description:"The Baltimore Ravens defeated the San Francisco 49ers 34–31 in Super Bowl XLVII, a game that included a 34-minute power outage in the third quarter. Joe Flacco was named MVP.", source:"https://www.pro-football-reference.com/boxscores/201302030sfo.htm" },
+  { date:"02/07", year:1904, description:"The Great Baltimore Fire began, destroying 140 acres and approximately 1,500 buildings. The Maryland State Archives also records the rebuilding commission subsequently established for the burned district.", source:"https://guide.msa.maryland.gov/pages/series.aspx?id=BRG17" },
+  { date:"07/04", year:1828, description:"Groundbreaking for the Baltimore & Ohio Railroad took place in Baltimore. The Baltimore Museum of Industry identifies it as one of the city’s most noteworthy historical events and an early U.S. rail-development milestone.", source:"https://www.thebmi.org/exhibits/bo-railroad/" },
+  { date:"09/13", year:1814, description:"British ships began their attack on Fort McHenry, which defended Baltimore’s water approach. The attack failed, and the fort’s defense became associated with the origin of the national anthem’s text.", source:"https://www.nps.gov/stsp/learn/historyculture/baltimore-and-north-point.htm" },
+  { date:"10/09", year:1966, description:"The Baltimore Orioles completed a 4-game sweep of the Los Angeles Dodgers, winning Game 4 1–0 for the franchise's first World Series championship.", source:"https://sabr.org/gamesproj/game/october-9-1966-dave-mcnally-fires-orioles-third-consecutive-shutout-as-baltimore-sweeps-dodgers/" },
+  { date:"10/15", year:1970, description:"The Baltimore Orioles defeated the Cincinnati Reds 9–3 in Game 5 to clinch the World Series 4 games to 1.", source:"https://sabr.org/gamesproj/game/october-15-1970-orioles-clinch-1970-world-series-championship-in-game-five/" },
+  { date:"10/16", year:1983, description:"The Baltimore Orioles defeated the Philadelphia Phillies 5–0 in Game 5, clinching the World Series championship.", source:"https://www.mlb.com/video/1983-ws-gm-5-bal-phi-c3708023" },
+];
+function setOnThisDay() {
+  const now  = new Date();
+  const mmdd = String(now.getMonth()+1).padStart(2,'0') + '/' + String(now.getDate()).padStart(2,'0');
+  const dc   = ON_THIS_DAY_DC.find(e => e.date === mmdd);
+  const balt = ON_THIS_DAY_BALT.find(e => e.date === mmdd);
+  const rowDC   = document.getElementById('otd-row-dc');
+  const rowBalt = document.getElementById('otd-row-balt');
+  const strip   = document.getElementById('otd-strip');
+
+  if (dc) {
+    document.getElementById('otd-text-dc').innerHTML =
+      `${dc.description} <span class="otd-year">(${dc.year})</span> — <a href="${dc.source}" target="_blank" rel="noopener noreferrer">source</a>`;
+    rowDC.style.display = 'flex';
+  } else {
+    rowDC.style.display = 'none';
+  }
+
+  if (balt) {
+    document.getElementById('otd-text-balt').innerHTML =
+      `${balt.description} <span class="otd-year">(${balt.year})</span> — <a href="${balt.source}" target="_blank" rel="noopener noreferrer">source</a>`;
+    rowBalt.style.display = 'flex';
+  } else {
+    rowBalt.style.display = 'none';
+  }
+
+  strip.style.display = (dc || balt) ? 'flex' : 'none';
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -3901,6 +3988,7 @@ function renderBriefBullets(bullets) {
 async function init() {
   startClock();
   setDailyQuote();
+  setOnThisDay();
 
   fetchWeather();
   fetchAirQuality();

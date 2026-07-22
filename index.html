@@ -1734,7 +1734,7 @@ function renderConditions(data) {
     // 8. Monument? — Washington Monument visibility, same cloud_cover heuristic
     // Philly (Rocky Steps?) and Seattle (Rainier?) already use for their own landmark
     (() => {
-      if (wmoSeverity(code)>=0.5 || clouds>75) return { label:'Monument?', value:'Hidden',  sub:'Sky obscured',     sev:'sev-red',   smallVal:true };
+      if (wmoSeverity(code)>=0.5 || clouds>75) return { label:'Monument?', value:'Hidden',  sub:'Cloud ceiling',     sev:'sev-red',   smallVal:true };
       if (clouds>40)                            return { label:'Monument?', value:'Hazy',    sub:`${clouds}% clouds`, sev:'sev-amber', smallVal:true };
       return                                           { label:'Monument?', value:'Visible', sub:`${clouds}% clouds`, sev:'sev-green', smallVal:true };
     })(),

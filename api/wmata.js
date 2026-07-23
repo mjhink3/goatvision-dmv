@@ -26,7 +26,11 @@ export default async function handler(req, res) {
     const response = await fetch(`https://api.wmata.com/${path}`, {
       headers: { api_key: process.env.WMATA_KEY },
     });
-    if (!response.ok) throw new Error(`WMATA request failed: HTTP ${response.status}`);
+    if (!response.ok) {
+      // Temporary — surfacing WMATA's actual error body while debugging jRouteDetails params.
+      const bodyText = await response.text().catch(() => '');
+      throw new Error(`WMATA request failed: HTTP ${response.status} — ${bodyText.slice(0, 300)}`);
+    }
 
     const data = await response.json();
     res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=30');

@@ -2930,6 +2930,21 @@ function renderWMATALiveMap(trains) {
 
 // ╔══════════════════════════════════════════════════════════╓
 //  WMATA METROBUS (schedule-based)
+//
+//  Investigated wiring this up to WMATA's real NextBusService.svc/json/jPredictions API
+//  (confirmed genuinely live via GPS — re-querying the same stop showed the countdown for
+//  the same real VehicleID tick down over time, not schedule/cached data; the WMATA_KEY
+//  already used elsewhere authorizes it). Blocked on sourcing a real StopID per route below:
+//  WMATA's own jRouteDetails endpoint returns "no schedule data available" for every route
+//  tried regardless of date/param format (a real server-side gap, not a param bug), and the
+//  GTFS static feed (the standard fallback) confirms none of these 12 route codes — X2, S1,
+//  30N, D6, A6, W4, 36, 5A, B30, 79, 96, G8 — exist in WMATA's current route list at all.
+//  WMATA rolled out a full "Better Bus Network" redesign that renumbered the entire system
+//  (current codes look like A11/C55/D40/M20/P32, a different scheme entirely) — this isn't
+//  a live-vs-modeled gap, the route catalog itself is stale. Fixing this needs the whole
+//  METROBUS_SCHEDULES list rebuilt against WMATA's current Better Bus routes first, not just
+//  a data-source swap. Until that's done, the clock-math model below (labeled "EST") is a
+//  legitimate stand-in, not a bug to route around.
 // ╚══════════════════════════════════════════════════════════╝
 const METROBUS_SCHEDULES = [
   { route:'X2',  label:'Benning Rd / H St NE / Union Sta',       peak:12, offpeak:20, night:40 },

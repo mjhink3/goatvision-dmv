@@ -756,7 +756,7 @@
 
         <!-- ═══ HIGHWAYS — shadow layer ═══ -->
         <!-- I-95 full spine: Baltimore → DC → Springfield → Fredericksburg -->
-        <polyline points="465,123 450,145 440,165 432,185 420,205 410,220 395,230 380,236 360,238 340,238 320,240 310,241 303,238 295,240 280,248 265,258 252,268 238,278 228,290 220,310 210,335 200,365 190,400 180,430 172,455 165,470" fill="none" stroke="#15103a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="465,123 450,145 440,165 432,185 420,205 410,220 395,230 380,236 360,238 340,238 320,240 310,241 303,238 295,240 280,248 265,258 252,268 238,278 228,290 220,310 210,335 200,365 190,400 180,430 172,455 165,470" fill="none" stroke="#15103a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 DC Beltway (oval roughly centered on DC at 303,238) -->
         <ellipse cx="303" cy="255" rx="148" ry="108" fill="none" stroke="#15103a" stroke-width="9"/>
         <!-- I-695 Baltimore Beltway (oval centered on Baltimore 465,123) -->
@@ -780,20 +780,35 @@
         <polyline points="200,248 190,240 170,234 149,230 131,228" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 
         <!-- ═══ HIGHWAYS — colored segments (updated by JS) ═══ -->
-        <!-- I-95 N segment: Baltimore → DC Beltway -->
-        <polyline id="seg-i95-n" points="465,123 450,145 440,165 432,185 420,205 410,220 395,230 380,236 360,238 340,238 320,240 310,241 303,238" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-95 N segment: Baltimore → DC Beltway — offset 2.5px perpendicular to each
+             sub-segment's own direction (per-vertex averaged unit-perpendicular of adjacent
+             segments), NOT the same "303,238" endpoint the S segment starts at. Previously
+             both shared that exact joint coordinate with zero separation — same line,
+             two DOM elements — confirmed via the real coordinates before this fix. -->
+        <polyline id="seg-i95-n" points="462.93,121.59 447.84,143.73 437.72,163.98 429.76,183.89 417.89,203.66 408.23,218.23 393.84,227.79 379.41,233.57 359.88,235.50 339.88,235.50 319.75,237.51 310.38,238.53 303.20,235.51" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-95 S segment: DC Beltway → Fredericksburg -->
-        <polyline id="seg-i95-s" points="303,238 295,240 280,248 265,258 252,268 238,278 228,290 220,310 210,335 200,365 190,400 180,430 172,455 165,470" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-495 W arc -->
-        <ellipse id="seg-495-w" cx="303" cy="255" rx="148" ry="108" fill="none" stroke="#3a1c38" stroke-width="5" stroke-dasharray="466 466" stroke-dashoffset="0"/>
-        <!-- I-495 E arc -->
-        <ellipse id="seg-495-e" cx="303" cy="255" rx="148" ry="108" fill="none" stroke="#3a1c38" stroke-width="5" stroke-dasharray="466 466" stroke-dashoffset="466"/>
-        <!-- I-695 Baltimore Beltway -->
-        <ellipse id="seg-695" cx="460" cy="128" rx="88" ry="62" fill="none" stroke="#3a1c38" stroke-width="4"/>
-        <!-- I-270 -->
-        <polyline id="seg-i270" points="303,238 295,228 280,215 265,200 248,182 230,162 210,140 190,118 170,100 149,87" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-66 -->
-        <polyline id="seg-i66" points="303,238 280,236 260,234 240,234 221,234 200,234 180,234 155,236 130,238 100,240 60,242 20,244" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i95-s" points="302.80,240.49 295.90,242.33 281.28,250.15 266.46,260.03 253.49,270.01 239.70,279.83 230.15,291.28 222.32,310.93 212.35,335.86 202.39,365.74 192.39,400.74 182.38,430.78 174.33,455.91 167.27,471.06" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-495 W arc — real concentric ring (outer), replacing the old same-ellipse
+             stroke-dasharray split (that was one ellipse cut into two arcs, not two
+             offset rings) -->
+        <ellipse id="seg-495-w" cx="303" cy="255" rx="150.5" ry="110.5" fill="none" stroke="#3a1c38" stroke-width="5"/>
+        <!-- I-495 E arc — inner concentric ring -->
+        <ellipse id="seg-495-e" cx="303" cy="255" rx="145.5" ry="105.5" fill="none" stroke="#3a1c38" stroke-width="5"/>
+        <!-- I-695 Baltimore Beltway — real E/W direction data exists in DMV_ROUTES (i695-e,
+             i695-w) but the single ellipse below only ever showed E ("east arc proxy").
+             Split into outer/inner concentric rings, one per real direction. -->
+        <ellipse id="seg-695-e" cx="460" cy="128" rx="90.5" ry="64.5" fill="none" stroke="#3a1c38" stroke-width="4"/>
+        <ellipse id="seg-695-w" cx="460" cy="128" rx="85.5" ry="59.5" fill="none" stroke="#3a1c38" stroke-width="4"/>
+        <!-- I-270 — real N/S direction data exists (i270-s, i270-n) but the single polyline
+             below only ever showed S ("south (peak direction)"). Split into two
+             perpendicular-offset polylines, one per real direction. -->
+        <polyline id="seg-i270-s" points="304.95,236.44 296.80,226.27 281.70,213.17 266.79,198.26 249.84,180.31 231.85,160.32 211.85,138.32 191.76,116.23 171.50,98.00 150.32,84.87" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i270-n" points="301.05,239.56 293.20,229.73 278.30,216.83 263.21,201.74 246.16,183.69 228.15,163.68 208.15,141.68 188.24,119.77 168.50,102.00 147.68,89.13" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-66 — real E/W direction data exists (i66-e, i66-w) but the single polyline
+             below only ever showed E ("eastbound (peak)"). Split into two
+             perpendicular-offset polylines, one per real direction. -->
+        <polyline id="seg-i66-e" points="303.22,235.51 280.23,233.51 260.12,231.50 240.00,231.50 221.00,231.50 200.00,231.50 179.90,231.50 154.80,233.51 129.82,235.51 99.85,237.50 59.88,239.50 19.88,241.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i66-w" points="302.78,240.49 279.77,238.49 259.88,236.50 240.00,236.50 221.00,236.50 200.00,236.50 180.10,236.50 155.20,238.49 130.18,240.49 100.15,242.50 60.12,244.50 20.12,246.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-83 -->
         <line id="seg-i83" x1="465" y1="60" x2="465" y2="123" stroke="#3a1c38" stroke-width="3" stroke-linecap="round"/>
         <!-- US-50 -->
@@ -2326,16 +2341,19 @@ function updateTrafficMap() {
   const segs = [
     ['seg-i95-n',  'I-95',  'N'],
     ['seg-i95-s',  'I-95',  'S'],
-    ['seg-495-w',  'I-495', 'N'],  // northern arc
-    ['seg-495-e',  'I-495', 'S'],  // southern arc
-    ['seg-695',    'I-695', 'E'],  // east arc proxy
-    ['seg-i270',   'I-270', 'S'],  // south (peak direction)
-    ['seg-i66',    'I-66',  'E'],  // eastbound (peak)
+    ['seg-495-w',  'I-495', 'N'],  // northern arc (outer ring)
+    ['seg-495-e',  'I-495', 'S'],  // southern arc (inner ring)
+    ['seg-695-e',  'I-695', 'E'],  // outer ring — real data, was dropped when this was one "proxy" line
+    ['seg-695-w',  'I-695', 'W'],  // inner ring
+    ['seg-i270-s', 'I-270', 'S'],
+    ['seg-i270-n', 'I-270', 'N'],  // real data, was dropped when this was one "peak direction" line
+    ['seg-i66-e',  'I-66',  'E'],
+    ['seg-i66-w',  'I-66',  'W'],  // real data, was dropped when this was one "peak direction" line
     ['seg-i83',    'I-83',  'S'],
     ['seg-us50',   'US-50', 'E'],
-    ['seg-i97',    'US-50', 'E'],  // I-97 proxy to US-50
+    ['seg-i97',    'US-50', 'E'],  // I-97 proxy to US-50 — no real I-97 data, left single-line
     ['seg-i295',   'I-295', 'S'],
-    ['seg-va267',  'I-66',  'E'],  // Dulles Toll Rd proxy
+    ['seg-va267',  'I-66',  'E'],  // Dulles Toll Rd proxy — no real VA-267 data, left single-line
   ];
   const applyColors = () => {
     let hits = 0;

@@ -2164,11 +2164,19 @@ const DMV_ROUTES = [
 //    have a real fixed compass direction to map that onto — same category of mismatch as
 //    i95, not a resolved fact, so left modeled rather than guessed.
 // The 5 below have a genuine single-direction, single-corridor match.
+//
+// These are exact-string matches against CHART's own segment names, which CHART can and
+// does rename without notice — i295-s's two names flipped endpoint order ("I-495 to I-195"
+// -> "I-195 to I-495", and reverse) sometime after this map was first built, which silently
+// dropped it to the modeled fallback (liveMDSegment() fails closed, never mismatched data,
+// but the row's live/modeled dot state changes with no visible error). If a previously-live
+// route starts rendering as modeled with no other explanation, re-check its exact segment
+// names against a fresh call to /api/md-traveltimes before assuming the live source is gone.
 const CHART_ROUTE_MAP = {
   'i270-n': ['I-270 North, I-495 EX 35 to I-370', 'I-270 North, I-370 to I-70'],
   'i270-s': ['I-270 South, I-370 to I-270 Split', 'I-270 South, I-70 to I-370'],
   'us50-e': ['US 50 East, District of Columbia to I-495', 'US 50 East, I-495 to I-97', 'US 50 East, I-97 to Bay Bridge'],
-  'i295-s': ['MD 295 South, I-495 to I-195', 'MD 295 South, I-195 to I-95'],
+  'i295-s': ['MD 295 South, I-195 to I-495', 'MD 295 South, I-95 to I-195'],
   'i83-s':  ['I-83 South, PA State Line to Shawan Rd', 'I-83 South, Shawan Rd to I-695', 'I-83 JFX South, I-695 to Fayette St'],
 };
 

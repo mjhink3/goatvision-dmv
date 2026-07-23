@@ -10,8 +10,9 @@ const ALLOWED = [
   /^TrainPositions\/TrainPositions(\?.*)?$/,
   // Temporary — investigating whether NextBusService can replace the clock-math Metrobus
   // panel. jStops is needed first, just to look up a real StopID to test predictions against.
-  /^Stops\.svc\/json\/jStops(\?.*)?$/,
-  /^NextBusService\.svc\/json\/jPredictions(\?.*)?$/,
+  // Case-insensitive: WMATA's own docs and API are inconsistent about casing between services.
+  /^Stops\.svc\/json\/jStops(\?.*)?$/i,
+  /^NextBusService\.svc\/json\/jPredictions(\?.*)?$/i,
 ];
 
 export default async function handler(req, res) {

@@ -294,16 +294,22 @@
 
   /* -- WMATA METRO BUS -- */
   #metrobus-list { max-height:360px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
-  .metro-row { display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid var(--border); transition:background 0.1s; }
+  .metro-row { display:grid; grid-template-columns:54px 1fr auto; align-items:center; gap:8px; padding:6px 10px; border-bottom:1px solid var(--border); transition:background 0.1s; }
   .metro-row:last-child { border-bottom:none; }
   .metro-row:hover { background:var(--bg3); }
-  .metro-badge { font-size:9px; font-weight:700; letter-spacing:0.04em; color:#0a0a0a; background:var(--gold); padding:2px 4px; text-align:center; white-space:nowrap; }
+  .metro-badge { font-size:9px; font-weight:700; letter-spacing:0.02em; color:#0a0a0a; background:var(--gold); padding:2px 4px; text-align:center; white-space:nowrap; }
+  .metro-badge.multi { font-size:7.5px; letter-spacing:0; }
   .metro-name { font-size:10px; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .metro-est-tag { font-size:7px; font-weight:700; letter-spacing:0.06em; color:var(--amber); margin-left:3px; }
   .metro-deps { display:flex; align-items:center; gap:4px; flex-shrink:0; white-space:nowrap; }
   .metro-dep { display:inline-flex; align-items:baseline; gap:3px; font-size:10px; font-weight:600; color:var(--text-bright); }
   .metro-depdiv { font-size:8px; color:var(--border); }
   .metro-sched { font-size:7px; font-style:italic; color:var(--text-dim); font-weight:400; }
-  .metro-col-header { display:grid; grid-template-columns:38px 1fr auto; align-items:center; gap:8px; padding:5px 10px; border-bottom:1px solid var(--border); }
+  .metro-corridor-note { grid-column:1/-1; padding:0 10px 6px 10px; margin-top:-4px; font-size:8px; color:var(--text-dim); font-style:italic; line-height:1.4; }
+  .metro-discontinued-row { padding:6px 10px; border-bottom:1px solid var(--border); font-size:9px; color:var(--text-dim); }
+  .metro-discontinued-row:last-child { border-bottom:none; }
+  .metro-discontinued-badge { font-size:9px; font-weight:700; color:var(--text-dim); background:var(--bg3); padding:1px 4px; margin-right:6px; }
+  .metro-col-header { display:grid; grid-template-columns:54px 1fr auto; align-items:center; gap:8px; padding:5px 10px; border-bottom:1px solid var(--border); }
   .metro-col-label { font-size:8px; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-dim); }
   .metro-footer { padding:5px 10px; font-size:9px; color:var(--text-dim); border-top:1px solid var(--border); }
   .metro-footer-warn { color:var(--amber); }
@@ -942,16 +948,16 @@
   <!-- WMATA METROBUS -->
   <div class="panel" id="metrobus-panel">
     <div class="panel-header">
-      <span class="panel-title"><span class="panel-icon">&#128652;</span> WMATA Metrobus &mdash; Key Routes <span style="font-size:8px;font-weight:700;letter-spacing:0.08em;padding:2px 5px;border:1px solid var(--amber);color:var(--amber);background:rgba(240,165,0,0.08);vertical-align:middle;margin-left:4px;">EST</span></span>
+      <span class="panel-title"><span class="panel-icon">&#128652;</span> WMATA Metrobus &mdash; Key Routes</span>
       <span class="refresh-ts" id="metrobus-ts">&#8212;</span>
     </div>
     <div class="metro-col-header">
       <span class="metro-col-label">Route</span>
       <span></span>
-      <span class="metro-col-label" style="font-style:italic">Est. Next Departures (Schedule-Based)</span>
+      <span class="metro-col-label" style="font-style:italic">Next Departures</span>
     </div>
     <div id="metrobus-list"></div>
-    <div class="metro-footer"><span class="metro-footer-warn">&#9888;</span> Schedule estimates only &mdash; not live GPS &middot; <a href="https://buseta.wmata.com" target="_blank" rel="noopener" style="color:var(--text-dim)">Real-time: buseta.wmata.com</a></div>
+    <div class="metro-footer"><span class="dot dot-green" style="width:5px;height:5px;margin-right:4px;"></span>Live: WMATA NextBusService (GPS) where available &middot; <span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>schedule-based EST as fallback &middot; <a href="https://buseta.wmata.com" target="_blank" rel="noopener" style="color:var(--text-dim)">buseta.wmata.com</a></div>
   </div>
 
   <!-- UPCOMING EVENTS — split DC / Baltimore -->
@@ -2931,34 +2937,50 @@ function renderWMATALiveMap(trains) {
 // ╔══════════════════════════════════════════════════════════╓
 //  WMATA METROBUS (schedule-based)
 //
-//  Investigated wiring this up to WMATA's real NextBusService.svc/json/jPredictions API
-//  (confirmed genuinely live via GPS — re-querying the same stop showed the countdown for
-//  the same real VehicleID tick down over time, not schedule/cached data; the WMATA_KEY
-//  already used elsewhere authorizes it). Blocked on sourcing a real StopID per route below:
-//  WMATA's own jRouteDetails endpoint returns "no schedule data available" for every route
-//  tried regardless of date/param format (a real server-side gap, not a param bug), and the
-//  GTFS static feed (the standard fallback) confirms none of these 12 route codes — X2, S1,
-//  30N, D6, A6, W4, 36, 5A, B30, 79, 96, G8 — exist in WMATA's current route list at all.
-//  WMATA rolled out a full "Better Bus Network" redesign that renumbered the entire system
-//  (current codes look like A11/C55/D40/M20/P32, a different scheme entirely) — this isn't
-//  a live-vs-modeled gap, the route catalog itself is stale. Fixing this needs the whole
-//  METROBUS_SCHEDULES list rebuilt against WMATA's current Better Bus routes first, not just
-//  a data-source swap. Until that's done, the clock-math model below (labeled "EST") is a
-//  legitimate stand-in, not a bug to route around.
+//  Corrected route mapping researched against WMATA's official Better Bus Network
+//  redesign (June 29, 2025) — the prior X2/S1/30N/D6/A6/W4/36/5A/B30/79/96/G8 codes were
+//  all defunct under WMATA's own current route catalog (confirmed via a live GTFS pull).
+//  Each corridor below carries one or more of its real current route(s) and a real StopID
+//  along that route, sourced from WMATA's GTFS static feed (trips.txt -> stop_times.txt ->
+//  stops.txt), since WMATA's own jRouteDetails endpoint returns "no schedule data" for
+//  every route regardless of params. NextBusService.svc/json/JPredictions at that StopID
+//  gives genuine GPS-based arrivals; confirmed live by re-querying the same stop and
+//  watching the countdown for the same real VehicleID tick down over time. Falls back to
+//  the clock-math model (labeled EST) per-corridor if a route's live call fails or the
+//  stop has no upcoming prediction right now — same honest-fallback pattern as Highway
+//  Travel Times' live/modeled dot.
 // ╚══════════════════════════════════════════════════════════╝
-const METROBUS_SCHEDULES = [
-  { route:'X2',  label:'Benning Rd / H St NE / Union Sta',       peak:12, offpeak:20, night:40 },
-  { route:'S1',  label:'16th St / Silver Spring / Potomac',       peak:10, offpeak:15, night:30 },
-  { route:'30N', label:'Friendship Heights / Georgetown / L\'Enf',peak:12, offpeak:20, night:40 },
-  { route:'D6',  label:'Alabama Ave / L\'Enfant Plaza',            peak:12, offpeak:15, night:30 },
-  { route:'A6',  label:'Anacostia / Congress Heights',             peak:12, offpeak:20, night:30 },
-  { route:'W4',  label:'Congress Heights / Southern Ave',          peak:15, offpeak:20, night:40 },
-  { route:'36',  label:'Pennsylvania Ave / Branch Ave',            peak:10, offpeak:15, night:30 },
-  { route:'5A',  label:'Dulles Airport / Rosslyn / L\'Enf',        peak:60, offpeak:60, night:999 },
-  { route:'B30', label:'BWI Airport / Greenbelt Metro',            peak:40, offpeak:40, night:999 },
-  { route:'79',  label:'Georgia Ave / Silver Spring',              peak:10, offpeak:15, night:30 },
-  { route:'96',  label:'East Capitol St / Addison Rd Metro',       peak:12, offpeak:20, night:40 },
-  { route:'G8',  label:'Rhode Island Ave / Mt Rainier',            peak:15, offpeak:20, night:40 },
+const METROBUS_CORRIDORS = [
+  { id:'x2', label:'Benning Rd / H St NE / Union Sta',
+    routes:[{route:'D20', stopId:'1003215'}], peak:12, offpeak:20, night:40 },
+  { id:'s1', label:"Today's 16th St corridor (D6X)",
+    note:'S1 itself was retired in the 1990s, well before Better Bus. Its sibling S9 became D6X in 2009 — D6X is the current 16th St corridor route, not a direct S1 rename.',
+    routes:[{route:'D6X', stopId:'2005455'}], peak:10, offpeak:15, night:30 },
+  { id:'30n', label:'Friendship Heights / Georgetown (D80)',
+    note:"L'Enfant Plaza service on this corridor was eliminated Dec 2024. D80 covers Friendship Heights-Georgetown only, not the full original 30N routing.",
+    routes:[{route:'D80', stopId:'2000024'}], peak:12, offpeak:20, night:40 },
+  { id:'d6', label:"Alabama Ave / L'Enfant Plaza",
+    routes:[{route:'D24', stopId:'1003229'}, {route:'D94', stopId:'1001055'}], peak:12, offpeak:15, night:30 },
+  { id:'a6', label:'Anacostia / Congress Heights',
+    routes:[{route:'C13', stopId:'1003350'}, {route:'C17', stopId:'1003071'}], peak:12, offpeak:20, night:30 },
+  { id:'w4', label:'Congress Heights / Southern Ave',
+    routes:[{route:'C23', stopId:'1003359'}], peak:15, offpeak:20, night:40 },
+  { id:'36', label:'Pennsylvania Ave / Branch Ave',
+    routes:[{route:'D1X', stopId:'3002632'}], peak:10, offpeak:15, night:30 },
+  { id:'79', label:'Georgia Ave / Silver Spring',
+    routes:[{route:'D4X', stopId:'2005472'}], peak:10, offpeak:15, night:30 },
+  { id:'96', label:'East Capitol St / Addison Rd Metro',
+    routes:[{route:'C51', stopId:'1000351'}, {route:'C57', stopId:'3000982'}, {route:'D24', stopId:'1003229'}], peak:12, offpeak:20, night:40 },
+  { id:'g8', label:'Rhode Island Ave / Mt Rainier',
+    routes:[{route:'D32', stopId:'1003288'}, {route:'D34', stopId:'3003133'}], peak:15, offpeak:20, night:40 },
+];
+// 5A and B30 aren't force-mapped to a substitute — neither corridor has any current
+// Metrobus service at all, confirmed via WMATA's own Better Bus documentation.
+const METROBUS_DISCONTINUED = [
+  { route:'5A',  label:"Dulles Airport / Rosslyn / L'Enfant",
+    note:'Discontinued Nov 2022 — replaced by Metrorail Silver Line service directly to Dulles Airport.' },
+  { route:'B30', label:'BWI Airport / Greenbelt Metro',
+    note:"Discontinued 2020 — WMATA explicitly did not restore BWI Airport service in the Better Bus Redesign. No current transit connection." },
 ];
 function getMetroFreq(r) {
   const now=new Date(),dow=now.getDay(),h=now.getHours()+now.getMinutes()/60,isWk=dow===0||dow===6;
@@ -2970,20 +2992,57 @@ function getNextDeps(freq) {
   const now=new Date(),e=now.getMinutes()%freq+now.getSeconds()/60,nxt=freq-e;
   return [Math.round(nxt),Math.round(nxt+freq),Math.round(nxt+freq*2)];
 }
-function renderMetrobusSchedule() {
-  const el=document.getElementById('metrobus-list');
-  if (!el) return;
-  el.innerHTML=METROBUS_SCHEDULES.map(r=>{
-    const freq=getMetroFreq(r);
-    if (freq>=999) return `<div class="metro-row"><span class="metro-badge">${r.route}</span><span class="metro-name">${r.label}</span><span class="metro-deps" style="font-size:9px;color:var(--text-dim)">Not 24hr</span></div>`;
-    const nexts=getNextDeps(freq);
-    const dH=nexts.map((m,i)=>{
-      const txt=m<=1?'~Now':`~${m}m`;
+function metroRouteBadge(corridor) {
+  const codes=corridor.routes.map(r=>r.route).join('/');
+  const cls=corridor.routes.length>1?'metro-badge multi':'metro-badge';
+  return `<span class="${cls}">${codes}</span>`;
+}
+function renderMetroRow(corridor, livePreds) {
+  const noteHtml = corridor.note ? `<div class="metro-corridor-note">${corridor.note}</div>` : '';
+  const badge = metroRouteBadge(corridor);
+  if (livePreds && livePreds.length) {
+    const top3=livePreds.slice(0,3);
+    const dH=top3.map((p,i)=>{
+      const txt=p.Minutes<=0?'~Now':`~${p.Minutes}m`;
       const pfx=i===0?'<span class="metro-sched">in</span> ':'<span class="metro-depdiv">&middot;</span>';
       return `${pfx}<span class="metro-dep">${txt}</span>`;
     }).join('');
-    return `<div class="metro-row"><span class="metro-badge">${r.route}</span><span class="metro-name">${r.label}</span><span class="metro-deps">${dH}</span></div>`;
+    return `<div class="metro-row">${badge}<span class="metro-name"><span class="dot dot-green" style="width:5px;height:5px;margin-right:4px;"></span>${corridor.label}</span><span class="metro-deps">${dH}</span>${noteHtml}</div>`;
+  }
+  // Fallback: no live prediction for any of this corridor's routes right now — clock-math EST.
+  const freq=getMetroFreq(corridor);
+  if (freq>=999) return `<div class="metro-row">${badge}<span class="metro-name"><span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>${corridor.label}</span><span class="metro-deps" style="font-size:9px;color:var(--text-dim)">Not 24hr</span>${noteHtml}</div>`;
+  const nexts=getNextDeps(freq);
+  const dH=nexts.map((m,i)=>{
+    const txt=m<=1?'~Now':`~${m}m`;
+    const pfx=i===0?'<span class="metro-sched">in</span> ':'<span class="metro-depdiv">&middot;</span>';
+    return `${pfx}<span class="metro-dep">${txt}</span>`;
   }).join('');
+  return `<div class="metro-row">${badge}<span class="metro-name"><span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>${corridor.label}<span class="metro-est-tag">EST</span></span><span class="metro-deps">${dH}</span>${noteHtml}</div>`;
+}
+function renderDiscontinuedRows() {
+  return METROBUS_DISCONTINUED.map(d => `<div class="metro-discontinued-row"><span class="metro-discontinued-badge">${d.route}</span><strong>${d.label}</strong> &mdash; ${d.note}</div>`).join('');
+}
+async function fetchMetroRoutePredictions(route, stopId) {
+  try {
+    const res = await fetch(`/api/wmata?path=${encodeURIComponent('NextBusService.svc/json/JPredictions?StopID='+stopId)}`,
+      { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return (data.Predictions||[]).filter(p => p.RouteID === route && p.Minutes != null);
+  } catch(e) { return []; }
+}
+async function renderMetrobusSchedule() {
+  const el=document.getElementById('metrobus-list');
+  if (!el) return;
+
+  const rowsHtml = await Promise.all(METROBUS_CORRIDORS.map(async corridor => {
+    const perRoute = await Promise.all(corridor.routes.map(r => fetchMetroRoutePredictions(r.route, r.stopId)));
+    const livePreds = perRoute.flat().sort((a,b) => a.Minutes - b.Minutes);
+    return renderMetroRow(corridor, livePreds);
+  }));
+
+  el.innerHTML = rowsHtml.join('') + renderDiscontinuedRows();
   const tsEl=document.getElementById('metrobus-ts');
   if (tsEl) tsEl.textContent=`Updated ${ts()}`;
 }

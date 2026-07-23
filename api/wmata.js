@@ -8,14 +8,11 @@ const ALLOWED = [
   /^StationPrediction\.svc\/json\/GetPrediction\/[A-Za-z0-9]+$/,
   /^TrainPositions\/StandardRoutes(\?.*)?$/,
   /^TrainPositions\/TrainPositions(\?.*)?$/,
-  // Real-time bus arrival predictions — confirmed genuinely live via GPS (re-querying the
-  // same stop showed the countdown for the same real VehicleID tick down over time), not
-  // schedule data. WMATA's casing is inconsistent between services, hence case-insensitive.
-  // Not yet wired to the Metrobus panel — see METROBUS_SCHEDULES comment in index.html for why.
+  // Real-time bus arrival predictions (Metrobus panel) — confirmed genuinely live via GPS
+  // (re-querying the same stop showed the countdown for the same real VehicleID tick down
+  // over time), not schedule data. WMATA's casing is inconsistent between services, hence
+  // case-insensitive.
   /^NextBusService\.svc\/json\/jPredictions(\?.*)?$/i,
-  // Temporary — re-sourcing real StopIDs for the corrected route mapping (D20, D24, D94,
-  // C13, C17, C23, D1X, D4X, C51, C57, D32, D34, D6X, D80). Remove once captured.
-  /^gtfs\/bus-gtfs-static\.zip$/,
 ];
 
 export default async function handler(req, res) {
@@ -28,14 +25,6 @@ export default async function handler(req, res) {
       headers: { api_key: process.env.WMATA_KEY },
     });
     if (!response.ok) throw new Error(`WMATA request failed: HTTP ${response.status}`);
-
-    if (path.endsWith('.zip')) {
-      // Temporary — binary passthrough for the GTFS static feed.
-      const buf = Buffer.from(await response.arrayBuffer());
-      res.setHeader('Content-Type', 'application/zip');
-      res.status(200).send(buf);
-      return;
-    }
 
     const data = await response.json();
     res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=30');

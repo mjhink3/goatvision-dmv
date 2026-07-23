@@ -8,16 +8,11 @@ const ALLOWED = [
   /^StationPrediction\.svc\/json\/GetPrediction\/[A-Za-z0-9]+$/,
   /^TrainPositions\/StandardRoutes(\?.*)?$/,
   /^TrainPositions\/TrainPositions(\?.*)?$/,
-  // Real-time bus arrival predictions (Metrobus panel) — confirmed genuinely live via GPS,
-  // not schedule data. WMATA's casing is inconsistent between services, hence case-insensitive.
+  // Real-time bus arrival predictions — confirmed genuinely live via GPS (re-querying the
+  // same stop showed the countdown for the same real VehicleID tick down over time), not
+  // schedule data. WMATA's casing is inconsistent between services, hence case-insensitive.
+  // Not yet wired to the Metrobus panel — see METROBUS_SCHEDULES comment in index.html for why.
   /^NextBusService\.svc\/json\/jPredictions(\?.*)?$/i,
-  // Temporary — sourcing one real StopID per Metrobus route from WMATA's own route/stop
-  // data (more reliable than a geo lookup, since it's tied directly to the route). Remove
-  // once the 12 StopIDs are captured into the client.
-  /^Bus\.svc\/json\/jRouteDetails(\?.*)?$/i,
-  // Temporary — GTFS static feed (binary zip) to source real StopIDs per route, since
-  // jRouteDetails returns "no schedule data" for every route tested. Remove after use.
-  /^gtfs\/bus-gtfs-static\.zip$/,
 ];
 
 export default async function handler(req, res) {
@@ -29,19 +24,7 @@ export default async function handler(req, res) {
     const response = await fetch(`https://api.wmata.com/${path}`, {
       headers: { api_key: process.env.WMATA_KEY },
     });
-    if (!response.ok) {
-      // Temporary — surfacing WMATA's actual error body while debugging jRouteDetails params.
-      const bodyText = await response.text().catch(() => '');
-      throw new Error(`WMATA request failed: HTTP ${response.status} — ${bodyText.slice(0, 300)}`);
-    }
-
-    if (path.endsWith('.zip')) {
-      // Temporary — binary passthrough for the GTFS static feed.
-      const buf = Buffer.from(await response.arrayBuffer());
-      res.setHeader('Content-Type', 'application/zip');
-      res.status(200).send(buf);
-      return;
-    }
+    if (!response.ok) throw new Error(`WMATA request failed: HTTP ${response.status}`);
 
     const data = await response.json();
     res.setHeader('Cache-Control', 's-maxage=15, stale-while-revalidate=30');

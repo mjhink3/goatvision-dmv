@@ -8,6 +8,13 @@ const ALLOWED = [
   /^StationPrediction\.svc\/json\/GetPrediction\/[A-Za-z0-9]+$/,
   /^TrainPositions\/StandardRoutes(\?.*)?$/,
   /^TrainPositions\/TrainPositions(\?.*)?$/,
+  // Real-time bus arrival predictions (Metrobus panel) — confirmed genuinely live via GPS,
+  // not schedule data. WMATA's casing is inconsistent between services, hence case-insensitive.
+  /^NextBusService\.svc\/json\/jPredictions(\?.*)?$/i,
+  // Temporary — sourcing one real StopID per Metrobus route from WMATA's own route/stop
+  // data (more reliable than a geo lookup, since it's tied directly to the route). Remove
+  // once the 12 StopIDs are captured into the client.
+  /^Routes\.svc\/json\/jRouteDetails(\?.*)?$/i,
 ];
 
 export default async function handler(req, res) {

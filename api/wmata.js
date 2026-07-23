@@ -15,6 +15,9 @@ const ALLOWED = [
   // data (more reliable than a geo lookup, since it's tied directly to the route). Remove
   // once the 12 StopIDs are captured into the client.
   /^Bus\.svc\/json\/jRouteDetails(\?.*)?$/i,
+  // Temporary — GTFS static feed (binary zip) to source real StopIDs per route, since
+  // jRouteDetails returns "no schedule data" for every route tested. Remove after use.
+  /^gtfs\/bus-gtfs-static\.zip$/,
 ];
 
 export default async function handler(req, res) {
@@ -30,6 +33,14 @@ export default async function handler(req, res) {
       // Temporary — surfacing WMATA's actual error body while debugging jRouteDetails params.
       const bodyText = await response.text().catch(() => '');
       throw new Error(`WMATA request failed: HTTP ${response.status} — ${bodyText.slice(0, 300)}`);
+    }
+
+    if (path.endsWith('.zip')) {
+      // Temporary — binary passthrough for the GTFS static feed.
+      const buf = Buffer.from(await response.arrayBuffer());
+      res.setHeader('Content-Type', 'application/zip');
+      res.status(200).send(buf);
+      return;
     }
 
     const data = await response.json();

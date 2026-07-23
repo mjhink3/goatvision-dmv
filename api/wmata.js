@@ -8,6 +8,10 @@ const ALLOWED = [
   /^StationPrediction\.svc\/json\/GetPrediction\/[A-Za-z0-9]+$/,
   /^TrainPositions\/StandardRoutes(\?.*)?$/,
   /^TrainPositions\/TrainPositions(\?.*)?$/,
+  // Temporary — investigating whether NextBusService can replace the clock-math Metrobus
+  // panel. jStops is needed first, just to look up a real StopID to test predictions against.
+  /^Stops\.svc\/json\/jStops(\?.*)?$/,
+  /^NextBusService\.svc\/json\/jPredictions(\?.*)?$/,
 ];
 
 export default async function handler(req, res) {

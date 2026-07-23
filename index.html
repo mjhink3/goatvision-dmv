@@ -1233,7 +1233,6 @@
     Open-Meteo (Weather &amp; Air Quality) &nbsp;&middot;&nbsp;
     NWS / api.weather.gov (Watches &amp; Warnings) &nbsp;&middot;&nbsp;
     DC OpenData / OCTO (Traffic Incidents &amp; FEMS) &nbsp;&middot;&nbsp;
-    DDOT (DC Traffic Cameras) &nbsp;&middot;&nbsp;
     NOAA CO-OPS Tides &amp; Currents (Station 8594900) &nbsp;&middot;&nbsp;
     MDTA (Chesapeake Bay Bridge) &nbsp;&middot;&nbsp;
     ESPN Public Schedule API (DC Teams) &nbsp;&middot;&nbsp;
@@ -3793,142 +3792,15 @@ async function fetchBayBridge() {
 }
 
 // ╔══════════════════════════════════════════════════════════╗
-//  WTOP TRAFFIC RSS — used by fetchDCCams() below.
-//  chartIncidentType/isChartDMV/CHART_DMV_* were originally written for a Maryland CHART
-//  integration that was never finished — fetchDCCams() below uses WTOP's RSS feed instead.
-//  CHART_DMV_COUNTIES/CHART_DMV_ROUTES are now used for real by fetchMDIncidents() above;
-//  chartIncidentType()/isChartDMV() remain unused.
-// ╚══════════════════════════════════════════════════════════╝
-
-// Incident type → display category
-function chartIncidentType(inc) {
-  const t = (inc.incidentType || inc.type || '').toString().toLowerCase();
-  const d = (inc.description || '').toLowerCase();
-  if (t.includes('weather') || t.includes('snow') || t.includes('ice') || d.includes('weather'))
-    return { label:'Weather', cls:'chart-type-wx' };
-  if (t === '2' || t.includes('incident') || t.includes('crash') || t.includes('injury') || t.includes('fire'))
-    return { label:'Incident', cls:'chart-type-inc' };
-  if (t === '250' || t.includes('congestion') || t.includes('disabled'))
-    return { label:'Congestion', cls:'chart-type-cong' };
-  if (t.includes('closure') || t.includes('construction') || t.includes('maintenance'))
-    return { label:'Closure', cls:'chart-type-clo' };
-  return { label:'Alert', cls:'chart-type-other' };
-}
-
-// Filter to DMV-relevant counties and corridors
+//  CHART_DMV_COUNTIES / CHART_DMV_ROUTES — used by the live fetchMDIncidents() above to
+//  scope Maryland's statewide incidents/closures feeds to the DC metro area.
+// ╚══════════════════════════════════════════════════════════╗
 const CHART_DMV_COUNTIES = new Set([
   "Montgomery","Prince George's","Prince Georges","Howard","Anne Arundel",
   "Baltimore City","Baltimore","Frederick","Carroll","Harford",
 ]);
 const CHART_DMV_ROUTES = /I-?495|I-?95|I-?270|I-?66|I-?695|I-?97|US.?50|MD.?4|MD.?5|MD.?32|MD.?200|ICC|beltway|capital/i;
 
-function isChartDMV(inc) {
-  const county = inc.county || '';
-  const desc   = (inc.description || inc.name || '').toString();
-  return CHART_DMV_COUNTIES.has(county) || CHART_DMV_ROUTES.test(desc);
-}
-
-async function fetchDCCams() {
-  const el = document.getElementById('dccam-grid');
-  if (!el) return;
-  el.innerHTML = '<div class="loading-msg" style="grid-column:1/-1;padding:16px">Loading WTOP traffic alerts&hellip;</div>';
-
-  // WTOP Traffic RSS — try direct first, then proxy fallbacks
-  const RSS_URL = 'https://wtop.com/traffic/feed/';
-  const RSS_PROXIES = [
-    RSS_URL, // direct — WTOP may allow CORS on RSS
-    `https://api.codetabs.com/v1/proxy/?quest=${encodeURIComponent(RSS_URL)}`,
-    `https://api.allorigins.win/raw?url=${encodeURIComponent(RSS_URL)}`,
-    `https://corsproxy.io/?${encodeURIComponent(RSS_URL)}`,
-  ];
-  let text = null;
-  for (const proxyUrl of RSS_PROXIES) {
-    try {
-      const r = await fetch(proxyUrl, { signal: AbortSignal.timeout(8000) });
-      if (!r.ok) continue;
-      const t = await r.text();
-      const trimmed = t.trimStart();
-      if (trimmed.startsWith('<') && trimmed.includes('<rss')) { text = t; break; }
-      if (trimmed.startsWith('<') && trimmed.includes('<channel')) { text = t; break; }
-    } catch(e) { continue; }
-  }
-  try {
-    if (!text) throw new Error('All RSS proxies failed or timed out');
-
-    // Parse RSS XML
-    const parser = new DOMParser();
-    const xml = parser.parseFromString(text, 'text/xml');
-    const items = Array.from(xml.querySelectorAll('item')).slice(0, 30);
-
-    if (!items.length) throw new Error('No items in feed');
-
-    // Split into incidents vs general traffic news
-    const incidents = [], news = [];
-    for (const item of items) {
-      const title = item.querySelector('title')?.textContent || '';
-      const desc  = item.querySelector('description')?.textContent?.replace(/<[^>]+>/g,'').trim() || '';
-      const link  = item.querySelector('link')?.textContent || '';
-      const pubDate = item.querySelector('pubDate')?.textContent || '';
-      const when = pubDate ? new Date(pubDate).toLocaleTimeString('en-US',{
-        hour:'numeric',minute:'2-digit',hour12:true,timeZone:'America/New_York'
-      }) : '—';
-      const isIncident = /crash|accident|closure|blocked|disabled|delay|incident|alert/i.test(title+desc);
-      const obj = { title, desc: desc.slice(0,120), link, when };
-      if (isIncident) incidents.push(obj);
-      else news.push(obj);
-    }
-
-    renderDCCams(incidents.slice(0,15), news.slice(0,15));
-    document.getElementById('dccam-ts').textContent =
-      `${items.length} items · ${ts()}`;
-  } catch(e) {
-    el.innerHTML = `<div class="error-msg" style="grid-column:1/-1">&#9888; WTOP traffic feed unavailable: ${e.message}</div>`;
-  }
-}
-
-function renderDCCams(incidents, closures) {
-  const el = document.getElementById('dccam-grid');
-  if (!el) return;
-
-  const renderItems = (items, isClosures) => {
-    if (!items.length) return '<div style="padding:10px 12px;font-size:8.5px;color:var(--text-dim)">No active ' + (isClosures ? 'closures' : 'incidents') + ' in DMV corridors.</div>';
-    return items.map(inc => {
-      // Handle WTOP RSS items (title/desc/link/when) and legacy CHART shape
-      const isWTOP = !!inc.title;
-      const desc = isWTOP ? inc.title : (inc.SERVICECODEDESCRIPTION || inc.description || '—').trim();
-      const sub  = isWTOP ? inc.desc  : '';
-      const when = inc.when || '—';
-      const meta = [when].filter(Boolean).join(' · ');
-      const cls  = isClosures ? 'chart-type-other' : 'chart-type-inc';
-      const label = isClosures ? 'News' : 'Alert';
-      const linkHtml = inc.link ? `<a href="${inc.link}" target="_blank" rel="noopener" style="color:var(--text-dim);font-size:7.5px">Read more ↗</a>` : '';
-      return `<div class="chart-item">
-        <div><span class="chart-type ${cls}">${label}</span></div>
-        <div>
-          <div class="chart-desc">${desc}</div>
-          ${sub ? `<div style="font-size:7.5px;color:var(--text-dim);margin-top:2px;line-height:1.4">${sub}</div>` : ''}
-          <div class="chart-meta">${meta} ${linkHtml}</div>
-        </div>
-      </div>`;
-    }).join('');
-  };
-
-  el.innerHTML = `
-    <div class="chart-col" style="border-right:1px solid var(--border)">
-      <div class="chart-col-header">&#9888; Active Incidents (${incidents.length})</div>
-      ${renderItems(incidents, false)}
-    </div>
-    <div class="chart-col">
-      <div class="chart-col-header">&#128679; Road Closures (${closures.length})</div>
-      ${renderItems(closures, true)}
-    </div>
-    <div class="chart-footer">Source: WTOP News Traffic Feed &middot; <a href="https://wtop.com/traffic" target="_blank" rel="noopener" style="color:var(--text-dim)">wtop.com/traffic &#8599;</a> &middot; DMV region &middot; Updated every 5 min</div>
-  `;
-}
-
-// stub — no longer needed but called in a few places
-function refreshAllCams() { fetchDCCams(); }
-function openLightbox(idx) { /* retired */ }
 function closeLightbox() { document.getElementById('cam-lightbox').classList.remove('open'); }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -4107,7 +3979,6 @@ async function init() {
   fetchFAA();
   fetchAmtrak();
   fetchBayBridge();
-  fetchDCCams();
 
   setInterval(fetchWeather,         CONFIG.REFRESH_WEATHER_MS);
   setInterval(fetchAirQuality,      CONFIG.REFRESH_WEATHER_MS);
@@ -4126,8 +3997,6 @@ async function init() {
   setInterval(fetchAmtrak,          5*60*1000);
   setInterval(fetchTide,            10*60*1000);
   setInterval(fetchBayBridge,       10*60*1000);
-  setInterval(refreshAllCams,       60*1000);
-  setInterval(fetchDCCams,           5*60*1000);  // CHART incidents every 5min
 
   setTimeout(generateOpsBrief, 2500);
   setInterval(generateOpsBrief, 2*60*1000);

@@ -549,6 +549,10 @@
     #header .header-right { flex-direction:row; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:6px 12px; font-size:9px; }
     #sys-time { font-size:13px; }
 
+    /* ── TRAFFIC MAP LEGEND: now 5 items (was 1 before restoring the color swatches),
+       needs to wrap on narrow widths — same treatment goatvision-philly/seattle already use. */
+    .tm-legend { flex-wrap:wrap; gap:8px; }
+
     /* ── CROSS-APP NAV STRIP ── */
     #citynav-strip { font-size:9px; }
 
@@ -902,17 +906,12 @@
         <text x="382" y="93" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
         <text x="540" y="107" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
 
-        <!-- ═══ LEGEND ═══ -->
-        <rect x="10" y="390" width="120" height="62" fill="rgba(8,4,8,0.90)" rx="3" stroke="#3a1c38" stroke-width="1"/>
-        <text x="20" y="404" font-family="monospace" font-size="7" fill="#7a5068" font-weight="700" letter-spacing="0.1em">TRAFFIC FLOW</text>
-        <line x1="18" y1="414" x2="46" y2="414" stroke="#3dd62a" stroke-width="4" stroke-linecap="round"/>
-        <text x="52" y="417" font-family="monospace" font-size="8" fill="#8a6070">On Time</text>
-        <line x1="18" y1="428" x2="46" y2="428" stroke="#f0a500" stroke-width="4" stroke-linecap="round"/>
-        <text x="52" y="431" font-family="monospace" font-size="8" fill="#8a6070">Slow</text>
-        <line x1="18" y1="442" x2="46" y2="442" stroke="#dc2626" stroke-width="4" stroke-linecap="round"/>
-        <text x="52" y="445" font-family="monospace" font-size="8" fill="#8a6070">Delay</text>
       </svg>
       <div class="tm-legend">
+        <div class="tm-legend-item"><div class="tm-swatch" style="background:#3dd62a"></div> On Time</div>
+        <div class="tm-legend-item"><div class="tm-swatch" style="background:#f0a500"></div> Slow (&gt;1.15x avg)</div>
+        <div class="tm-legend-item"><div class="tm-swatch" style="background:#dc2626"></div> Heavy Delay (&gt;1.65x avg)</div>
+        <div class="tm-legend-item"><div class="tm-swatch" style="background:#3a1c38"></div> No data</div>
         <div class="tm-legend-item" style="font-style:italic;opacity:0.6">Frederick &rarr; Fredericksburg &rarr; Annapolis &rarr; Shenandoah</div>
       </div>
     </div>

@@ -50,7 +50,7 @@
     background: linear-gradient(180deg, #1a0510 0%, #0e0408 55%, var(--bg) 100%);
     border-bottom: 1px solid var(--border);
     padding: 10px 16px;
-    display: grid; grid-template-columns: auto 1fr auto auto; grid-template-areas: "brand . dots clock";
+    display: grid; grid-template-columns: auto 1fr minmax(0,1fr) minmax(120px,auto); grid-template-areas: "brand . dots clock";
     align-items: center; column-gap: 18px;
     position: sticky; top: 0; z-index: 100;
   }
@@ -61,7 +61,7 @@
   .brand-tm     { font-size:8px; color:var(--text-dim); vertical-align:super; margin-left:2px; }
   .brand-city   { font-size:10px; font-weight:700; letter-spacing:0.35em; color:var(--gold); text-transform:uppercase; margin-top:3px; }
   .brand-tagline{ font-size:8px; letter-spacing:0.18em; color:var(--text-dim); margin-top:2px; text-transform:uppercase; }
-  #header .header-right { grid-area:dots; display:flex; gap:18px; align-items:center; font-size:11px; color:var(--text-dim); }
+  #header .header-right { grid-area:dots; display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center; justify-content:flex-end; font-size:11px; color:var(--text-dim); }
   #header .header-right span { display:flex; align-items:center; gap:4px; }
   #sys-time-wrap { grid-area:clock; }
   .dot { width:6px; height:6px; border-radius:50%; display:inline-block; }

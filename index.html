@@ -537,6 +537,20 @@
   #dashboard-footer .footer-brand { font-size:9px; color:var(--text-dim); letter-spacing:0.12em; text-transform:uppercase; white-space:nowrap; }
   #dashboard-footer .footer-brand span { color:var(--gv-purple); }
 
+  /* -- NARROW DESKTOP (half-snapped windows, ~800-1300px) --
+     Same wrap approach as the mobile block below (brand+clock top row, dots
+     wrapping into their own full-width row underneath), but at full desktop
+     font sizes since this is still a real desktop viewport, just narrower.
+     A Windows-Snap half window on a 1920px-wide screen lands at ~950px CSS
+     width, ~200-250px short of what the un-wrapped single-row header needs
+     for DMV's 11 status-dot labels + clock (measured, not assumed - see
+     commit history). 1300px covers common half-snap widths on 1920px and
+     2560px monitors with real margin to spare. */
+  @media (max-width:1300px) {
+    #header { grid-template-columns:1fr auto; grid-template-areas:"brand clock" "dots dots"; row-gap:8px; column-gap:18px; align-items:start; }
+    #header .header-right { flex-wrap:wrap; gap:8px 18px; }
+  }
+
   /* -- MOBILE -- */
   @media (max-width:480px) {
     html, body { overflow-x:hidden; }

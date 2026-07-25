@@ -3444,9 +3444,9 @@ function renderBike(data) {
   if (isDark) total = Math.min(total, BIKE_DARK_CAP);
 
   let label, col, verdict;
-  if (total>=75)      { label='GREAT';   col='sev-green'; verdict='Saddle up — DC trails are calling.'; }
-  else if (total>=50) { label='DECENT';  col='sev-amber'; verdict='Doable with layers.'; }
-  else if (total>=25) { label='TOUGH';   col='sev-amber'; verdict='Challenging conditions today.'; }
+  if (total>=80)      { label='GO';      col='sev-green'; verdict='Saddle up — DC trails are calling.'; }
+  else if (total>=55) { label='DECENT';  col='sev-green'; verdict='Doable with layers.'; }
+  else if (total>=30) { label='ROUGH';   col='sev-amber'; verdict='Challenging conditions today.'; }
   else                { label='SKIP IT'; col='sev-red';   verdict='Leave the bike. Take Metro.'; }
   if (isDark) verdict = 'Dark out — capped for safety regardless of weather. Lights & reflective gear essential; ~50% of cyclist fatalities occur after dark (NHTSA).';
 

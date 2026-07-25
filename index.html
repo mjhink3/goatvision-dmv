@@ -801,33 +801,39 @@
         <text x="155" y="230" font-family="monospace" font-size="7" fill="rgba(100,140,220,0.45)">Potomac River</text>
 
         <!-- Patapsco River / Baltimore Harbor (small) -->
-        <path d="M465,123 Q490,135 510,145 Q530,152 560,155 Q590,157 620,158"
+        <path d="M432.5,87.4 Q457.5,99.4 477.5,109.4 Q497.5,116.4 527.5,119.4 Q557.5,121.4 587.5,122.4"
               fill="none" stroke="rgba(30,60,160,0.25)" stroke-width="5"/>
 
         <!-- ═══ HIGHWAYS — shadow layer ═══ -->
         <!-- I-95 full spine: Baltimore → DC → Springfield → Fredericksburg -->
-        <polyline points="465,123 450,145 440,165 432,185 420,205 410,220 395,230 380,236 360,238 340,238 320,240 310,241 303,238 295,240 280,248 265,258 252,268 238,278 228,290 220,310 210,335 200,365 190,400 180,430 172,455 165,470" fill="none" stroke="#15103a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-495 DC Beltway (oval roughly centered on DC at 303,238) -->
-        <ellipse cx="303" cy="255" rx="148" ry="108" fill="none" stroke="#15103a" stroke-width="9"/>
-        <!-- I-695 Baltimore Beltway (oval centered on Baltimore 465,123) -->
-        <ellipse cx="460" cy="128" rx="88" ry="62" fill="none" stroke="#15103a" stroke-width="8"/>
+        <polyline points="432.50,87.40 420.21,112.37 412.92,135.33 407.63,158.30 398.33,181.27 391.04,199.23 378.75,212.20 366.46,221.17 349.17,226.13 331.88,229.10 314.58,234.07 307.29,238.03 303.00,238.00 295.00,240.00 280.00,248.00 265.00,258.00 252.00,268.00 238.00,278.00 228.00,290.00 220.00,310.00 210.00,335.00 200.00,365.00 190.00,400.00 180.00,430.00 172.00,455.00 165.00,470.00" fill="none" stroke="#15103a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-495 DC Beltway (centered on DC at 303,255). Radius corrected to reflect the
+             real ~64mi Beltway circumference (~10.5mi x 9mi average radius) at this map's
+             verified core scale (5.68px/mi) - was previously drawn ~2.5x oversized, which
+             was the root cause of it visually touching I-695 (confirmed 0px gap before
+             this fix, via real-lat/lon-based geometric audit). -->
+        <ellipse cx="303" cy="255" rx="59.6" ry="51.1" fill="none" stroke="#15103a" stroke-width="9"/>
+        <!-- I-695 Baltimore Beltway (centered on Baltimore's corrected position). Radius
+             corrected to reflect the real ~32mi Beltway circumference (~5.5mi x 4.8mi
+             average radius) at the same verified scale - same oversizing issue as I-495. -->
+        <ellipse cx="427.5" cy="92.4" rx="31.2" ry="27.3" fill="none" stroke="#15103a" stroke-width="8"/>
         <!-- I-270: DC → Rockville → Frederick (NW diagonal) -->
-        <polyline points="303,238 295,228 280,215 265,200 248,182 230,162 210,140 190,118 170,100 149,87" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="303.00,238.00 299.47,222.64 288.93,204.28 278.40,183.92 265.86,160.56 252.33,135.20 236.79,107.85 221.26,80.49 205.72,57.13 189.19,38.77" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-66: DC → Tysons → Manassas → Front Royal (W) -->
-        <polyline points="303,238 280,236 260,234 240,234 221,234 200,234 180,234 155,236 130,238 100,240 60,242 20,244" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="303.00,238.00 285.65,235.88 271.30,233.75 256.95,233.63 243.60,233.50 219.37,233.57 196.14,233.64 167.91,235.71 139.69,237.79 106.46,239.86 63.23,241.93 20.00,244.00" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-83: Baltimore → PA border (N) -->
-        <line x1="465" y1="60" x2="465" y2="123" stroke="#15103a" stroke-width="7" stroke-linecap="round"/>
+        <line x1="432.5" y1="24.4" x2="432.5" y2="87.4" stroke="#15103a" stroke-width="7" stroke-linecap="round"/>
         <!-- US-50: DC → Annapolis → Bay Bridge (E) -->
-        <polyline points="303,238 330,225 360,218 390,215 420,213 450,212 480,212 508,213 540,213 575,213 615,215 640,220" fill="none" stroke="#15103a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="303.00,238.00 324.49,224.57 348.97,217.14 373.46,213.71 397.94,211.29 422.43,209.86 446.91,209.43 469.40,210.00 501.40,210.00 536.40,210.00 576.40,212.00 601.40,217.00" fill="none" stroke="#15103a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-97: Baltimore Beltway → Annapolis -->
-        <polyline points="430,155 420,170 415,185 410,200 408,213 508,213" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="397.50,119.40 386.28,140.92 380.06,162.44 373.84,183.96 370.62,203.48 469.40,210.00" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-295 / BW Pkwy: DC → Baltimore (parallel to I-95, east side) -->
-        <polyline points="330,238 340,220 352,205 362,188 372,170 382,155 392,140 405,128 420,118 440,112 460,108" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="330.00,238.00 336.75,216.44 345.50,197.88 352.25,177.32 359.00,155.76 365.75,137.20 372.50,118.64 382.25,103.08 394.00,89.52 410.75,79.96 427.50,72.40" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-395: 14th St Bridge / Pentagon spur -->
         <line x1="303" y1="238" x2="290" y2="262" stroke="#15103a" stroke-width="6" stroke-linecap="round"/>
         <!-- I-95 south continuation past Springfield to Fredericksburg already in main I-95 above -->
         <!-- VA-267 / Dulles Toll Road (W from Beltway to Dulles) -->
-        <polyline points="200,248 190,240 170,234 149,230 131,228" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline points="200.00,248.00 200.95,238.00 191.90,230.00 181.85,224.00 174.80,220.00" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 
         <!-- ═══ HIGHWAYS — colored segments (updated by JS) ═══ -->
         <!-- I-95 N segment: Baltimore → DC Beltway — offset 2.5px perpendicular to each
@@ -835,81 +841,92 @@
              segments), NOT the same "303,238" endpoint the S segment starts at. Previously
              both shared that exact joint coordinate with zero separation — same line,
              two DOM elements — confirmed via the real coordinates before this fix. -->
-        <polyline id="seg-i95-n" points="462.93,121.59 447.84,143.73 437.72,163.98 429.76,183.89 417.89,203.66 408.23,218.23 393.84,227.79 379.41,233.57 359.88,235.50 339.88,235.50 319.75,237.51 310.38,238.53 303.20,235.51" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i95-n" points="430.43,85.99 418.05,111.10 410.64,134.31 405.38,157.19 396.22,179.93 389.27,197.46 377.59,209.99 365.87,218.74 349.05,223.63 331.75,226.60 314.33,231.58 307.67,235.56 303.20,235.51" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-95 S segment: DC Beltway → Fredericksburg -->
         <polyline id="seg-i95-s" points="302.80,240.49 295.90,242.33 281.28,250.15 266.46,260.03 253.49,270.01 239.70,279.83 230.15,291.28 222.32,310.93 212.35,335.86 202.39,365.74 192.39,400.74 182.38,430.78 174.33,455.91 167.27,471.06" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 W arc — real concentric ring (outer), replacing the old same-ellipse
              stroke-dasharray split (that was one ellipse cut into two arcs, not two
              offset rings) -->
-        <ellipse id="seg-495-w" cx="303" cy="255" rx="150.5" ry="110.5" fill="none" stroke="#3a1c38" stroke-width="5"/>
+        <ellipse id="seg-495-w" cx="303" cy="255" rx="62.1" ry="53.6" fill="none" stroke="#3a1c38" stroke-width="5"/>
         <!-- I-495 E arc — inner concentric ring -->
-        <ellipse id="seg-495-e" cx="303" cy="255" rx="145.5" ry="105.5" fill="none" stroke="#3a1c38" stroke-width="5"/>
+        <ellipse id="seg-495-e" cx="303" cy="255" rx="57.1" ry="48.6" fill="none" stroke="#3a1c38" stroke-width="5"/>
         <!-- I-695 Baltimore Beltway — real E/W direction data exists in DMV_ROUTES (i695-e,
              i695-w) but the single ellipse below only ever showed E ("east arc proxy").
              Split into outer/inner concentric rings, one per real direction. -->
-        <ellipse id="seg-695-e" cx="460" cy="128" rx="90.5" ry="64.5" fill="none" stroke="#3a1c38" stroke-width="4"/>
-        <ellipse id="seg-695-w" cx="460" cy="128" rx="85.5" ry="59.5" fill="none" stroke="#3a1c38" stroke-width="4"/>
+        <ellipse id="seg-695-e" cx="427.5" cy="92.4" rx="33.7" ry="29.8" fill="none" stroke="#3a1c38" stroke-width="4"/>
+        <ellipse id="seg-695-w" cx="427.5" cy="92.4" rx="28.7" ry="24.8" fill="none" stroke="#3a1c38" stroke-width="4"/>
         <!-- I-270 — real N/S direction data exists (i270-s, i270-n) but the single polyline
              below only ever showed S ("south (peak direction)"). Split into two
              perpendicular-offset polylines, one per real direction. -->
-        <polyline id="seg-i270-s" points="304.95,236.44 296.80,226.27 281.70,213.17 266.79,198.26 249.84,180.31 231.85,160.32 211.85,138.32 191.76,116.23 171.50,98.00 150.32,84.87" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <polyline id="seg-i270-n" points="301.05,239.56 293.20,229.73 278.30,216.83 263.21,201.74 246.16,183.69 228.15,163.68 208.15,141.68 188.24,119.77 168.50,102.00 147.68,89.13" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i270-s" points="304.95,236.44 301.27,220.91 290.63,202.45 280.19,182.18 267.70,158.87 254.18,133.52 238.64,106.17 223.02,78.72 207.22,55.13 190.51,36.64" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i270-n" points="301.05,239.56 297.67,224.37 287.23,206.11 276.61,185.66 264.02,162.25 250.48,136.88 234.94,109.53 219.50,82.26 204.22,59.13 187.87,40.90" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-66 — real E/W direction data exists (i66-e, i66-w) but the single polyline
              below only ever showed E ("eastbound (peak)"). Split into two
              perpendicular-offset polylines, one per real direction. -->
-        <polyline id="seg-i66-e" points="303.22,235.51 280.23,233.51 260.12,231.50 240.00,231.50 221.00,231.50 200.00,231.50 179.90,231.50 154.80,233.51 129.82,235.51 99.85,237.50 59.88,239.50 19.88,241.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <polyline id="seg-i66-w" points="302.78,240.49 279.77,238.49 259.88,236.50 240.00,236.50 221.00,236.50 200.00,236.50 180.10,236.50 155.20,238.49 130.18,240.49 100.15,242.50 60.12,244.50 20.12,246.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i66-e" points="303.22,235.51 285.88,233.38 271.42,231.25 256.95,231.13 243.60,231.00 219.37,231.07 196.04,231.14 167.71,233.22 139.51,235.30 106.31,237.36 63.11,239.43 19.88,241.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i66-w" points="302.78,240.49 285.42,238.37 271.18,236.25 256.95,236.13 243.60,236.00 219.37,236.07 196.24,236.14 168.11,238.20 139.87,240.28 106.61,242.36 63.35,244.43 20.12,246.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-83 -->
-        <line id="seg-i83" x1="465" y1="60" x2="465" y2="123" stroke="#3a1c38" stroke-width="3" stroke-linecap="round"/>
+        <line id="seg-i83" x1="432.5" y1="24.4" x2="432.5" y2="87.4" stroke="#3a1c38" stroke-width="3" stroke-linecap="round"/>
         <!-- US-50 -->
-        <polyline id="seg-us50" points="303,238 330,225 360,218 390,215 420,213 450,212 480,212 508,213 540,213 575,213 615,215 640,220" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-us50" points="303.00,238.00 324.49,224.57 348.97,217.14 373.46,213.71 397.94,211.29 422.43,209.86 446.91,209.43 469.40,210.00 501.40,210.00 536.40,210.00 576.40,212.00 601.40,217.00" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-97 -->
-        <polyline id="seg-i97" points="430,155 420,170 415,185 410,200 408,213 508,213" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i97" points="397.50,119.40 386.28,140.92 380.06,162.44 373.84,183.96 370.62,203.48 469.40,210.00" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-295 / BW Pkwy -->
-        <polyline id="seg-i295" points="330,238 340,220 352,205 362,188 372,170 382,155 392,140 405,128 420,118 440,112 460,108" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i295" points="330.00,238.00 336.75,216.44 345.50,197.88 352.25,177.32 359.00,155.76 365.75,137.20 372.50,118.64 382.25,103.08 394.00,89.52 410.75,79.96 427.50,72.40" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- VA-267 Dulles Toll Road -->
-        <polyline id="seg-va267" points="200,248 190,240 170,234 149,230 131,228" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-va267" points="200.00,248.00 200.95,238.00 191.90,230.00 181.85,224.00 174.80,220.00" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
 
         <!-- ═══ CITY DOTS ═══ -->
         <!-- DC — primary anchor -->
         <circle cx="303" cy="238" r="9" fill="#9b1b30"/>
         <text x="303" y="241" font-family="monospace" font-size="8" fill="#f5eef0" font-weight="700" text-anchor="middle">DC</text>
 
-        <!-- Baltimore -->
-        <circle cx="465" cy="123" r="7" fill="#c9a84c"/>
-        <text x="465" y="112" font-family="monospace" font-size="9" fill="#f5eef0" font-weight="700" text-anchor="middle">Baltimore</text>
+        <!-- Baltimore — repositioned to true bearing (40.7°) and distance (35.0mi) from DC
+             at this map's verified core scale (5.68px/mi); was previously ~14° off true
+             bearing and part of the DC/Baltimore-adjacent cluster whose expansion caused
+             I-495/I-695 to visually touch (confirmed via real-lat/lon geometric audit). -->
+        <circle cx="432.5" cy="87.4" r="7" fill="#c9a84c"/>
+        <text x="432.5" y="76.4" font-family="monospace" font-size="9" fill="#f5eef0" font-weight="700" text-anchor="middle">Baltimore</text>
 
-        <!-- Annapolis -->
-        <circle cx="508" cy="213" r="4" fill="#635060"/>
-        <text x="516" y="210" font-family="monospace" font-size="8" fill="#8a6070">Annapolis ✈</text>
+        <!-- Annapolis — repositioned to true bearing/distance from DC (was drawn ~20%
+             beyond true scale) -->
+        <circle cx="469.4" cy="210.0" r="4" fill="#635060"/>
+        <text x="477.4" y="207.0" font-family="monospace" font-size="8" fill="#8a6070">Annapolis ✈</text>
 
-        <!-- Frederick -->
-        <circle cx="149" cy="87" r="3" fill="#635060"/>
-        <text x="157" y="91" font-family="monospace" font-size="8" fill="#8a6070">Frederick</text>
+        <!-- Frederick — repositioned to true bearing (330.3°) from DC (was ~16° off) -->
+        <circle cx="189.2" cy="38.8" r="3" fill="#635060"/>
+        <text x="197.2" y="42.8" font-family="monospace" font-size="8" fill="#8a6070">Frederick</text>
 
         <!-- Fredericksburg -->
         <circle cx="165" cy="470" r="3" fill="#635060"/>
         <text x="173" y="474" font-family="monospace" font-size="8" fill="#8a6070">Fredericksburg</text>
 
-        <!-- Front Royal / Shenandoah -->
+        <!-- Front Royal / Shenandoah — INTENTIONALLY drawn compressed relative to true
+             scale (a deliberate cartographic choice, not an unflagged inaccuracy): at
+             this map's verified accurate core scale, Shenandoah's true relative position
+             would fall off the left edge of this 760px-wide canvas entirely (confirmed via
+             real-lat/lon best-fit analysis). Kept as a compressed peripheral inset rather
+             than widening the canvas or rescaling the whole map down. -->
         <circle cx="22" cy="244" r="3" fill="#635060"/>
         <text x="28" y="240" font-family="monospace" font-size="8" fill="#8a6070">Shenandoah</text>
 
-        <!-- Dulles / IAD -->
-        <circle cx="131" cy="228" r="3" fill="#635060"/>
-        <text x="122" y="222" font-family="monospace" font-size="8" fill="#8a6070" text-anchor="end">IAD ✈</text>
+        <!-- Dulles / IAD — repositioned to true bearing/distance from DC (was drawn ~31%
+             beyond true scale, part of the same DC-hub over-expansion as Tysons/Annapolis) -->
+        <circle cx="174.8" cy="220.0" r="3" fill="#635060"/>
+        <text x="165.8" y="214.0" font-family="monospace" font-size="8" fill="#8a6070" text-anchor="end">IAD ✈</text>
 
-        <!-- Tysons -->
-        <circle cx="221" cy="234" r="3" fill="#635060"/>
-        <text x="221" y="225" font-family="monospace" font-size="8" fill="#8a6070" text-anchor="middle">Tysons</text>
+        <!-- Tysons — repositioned to true bearing/distance from DC (was drawn ~36% beyond
+             true scale) -->
+        <circle cx="243.6" cy="233.5" r="3" fill="#635060"/>
+        <text x="243.6" y="224.5" font-family="monospace" font-size="8" fill="#8a6070" text-anchor="middle">Tysons</text>
 
         <!-- Springfield interchange -->
         <circle cx="255" cy="265" r="3" fill="#635060"/>
         <text x="235" y="275" font-family="monospace" font-size="8" fill="#8a6070">Springfield</text>
 
-        <!-- BWI Airport -->
-        <circle cx="441" cy="154" r="3" fill="#635060"/>
-        <text x="449" y="152" font-family="monospace" font-size="8" fill="#8a6070">BWI ✈</text>
+        <!-- BWI Airport — repositioned to true bearing (46.6°) from DC (was ~12° off) -->
+        <circle cx="415.4" cy="131.8" r="3" fill="#635060"/>
+        <text x="423.4" y="129.8" font-family="monospace" font-size="8" fill="#8a6070">BWI ✈</text>
 
         <!-- DCA/Reagan -->
         <circle cx="310" cy="258" r="3" fill="#635060"/>
@@ -921,18 +938,20 @@
 
         <!-- ═══ HIGHWAY LABELS ═══ -->
         <text x="380" y="193" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-95</text>
-        <text x="468" y="78" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-83</text>
-        <text x="205" y="150" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-270</text>
+        <text x="438" y="55" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-83</text>
+        <text x="255" y="150" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-270</text>
         <text x="150" y="242" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-66</text>
-        <text x="458" y="220" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">US-50</text>
-        <text x="370" y="165" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-295</text>
+        <text x="430" y="222" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">US-50</text>
+        <text x="350" y="165" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-295</text>
         <text x="418" y="195" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">I-97</text>
         <text x="186" y="255" font-family="monospace" font-size="8" fill="#c9a84c" font-weight="700">VA-267</text>
-        <!-- Beltway labels -->
-        <text x="190" y="182" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
-        <text x="395" y="345" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
-        <text x="382" y="93" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
-        <text x="540" y="107" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
+        <!-- Beltway labels — repositioned to match I-495/I-695's corrected (much smaller,
+             correctly-scaled) ellipse geometry; the old positions were tuned to the
+             previous oversized ellipses and ended up 70-75px from the new boundaries. -->
+        <text x="355" y="295" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
+        <text x="245" y="258" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
+        <text x="450" y="105" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
+        <text x="405" y="98" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
 
       </svg>
       <div class="tm-legend">

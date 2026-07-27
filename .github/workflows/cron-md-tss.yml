@@ -1,0 +1,15 @@
+name: Trigger MDOT SHA CHART speed-sensor cron
+
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+
+jobs:
+  trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Call cron-md-tss endpoint
+        run: |
+          curl -sf -X GET "https://goatvisiondmv.vercel.app/api/cron-md-tss" \
+            -H "x-cron-secret: ${{ secrets.CRON_SECRET }}"

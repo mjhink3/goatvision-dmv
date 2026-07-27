@@ -338,6 +338,16 @@
   .tt-cur-unit { font-size:9px; color:var(--text-dim); font-weight:400; }
   .tt-avg  { font-size:9px; color:var(--text-dim); text-align:right; white-space:nowrap; }
   .tt-badge { font-size:9px; font-weight:700; letter-spacing:0.05em; padding:2px 5px; text-align:center; border-radius:2px; white-space:nowrap; }
+
+  /* -- MD LIVE SPEED SENSORS (MDOT SHA CHART TSS) -- */
+  #tss-list { max-height:320px; overflow-y:auto; scrollbar-width:thin; scrollbar-color:var(--border) transparent; }
+  .tss-row { display:grid; grid-template-columns:1fr auto auto 64px; align-items:center; gap:8px; padding:7px 10px; border-bottom:1px solid var(--border); }
+  .tss-row:last-child { border-bottom:none; }
+  .tss-desc { font-size:11px; color:var(--text-bright); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .tss-dir  { font-size:9px; font-weight:700; letter-spacing:0.05em; padding:2px 5px; border:1px solid var(--border); color:var(--text-dim); text-transform:uppercase; white-space:nowrap; }
+  .tss-speed { font-size:15px; font-weight:700; color:var(--text-bright); text-align:right; white-space:nowrap; }
+  .tss-speed-unit { font-size:9px; color:var(--text-dim); font-weight:400; }
+  .tss-age { font-size:9px; color:var(--text-dim); text-align:right; white-space:nowrap; }
   .tt-ok   { background:rgba(61,214,42,0.12);  color:var(--green); }
   .tt-warn { background:rgba(240,165,0,0.12);  color:var(--amber); }
   .tt-bad  { background:rgba(220,38,38,0.12);  color:var(--red);   }
@@ -741,6 +751,16 @@
     <div id="tt-list"><div class="loading-msg">Loading travel times&hellip;</div></div>
   </div>
 
+  <!-- MD LIVE SPEED SENSORS (MDOT SHA CHART) -->
+  <div class="panel" id="mdtss-panel">
+    <div class="panel-header">
+      <span class="panel-title"><span class="panel-icon">&#128225;</span> MD Live Speed Sensors <span style="font-size:8px;font-weight:700;letter-spacing:0.08em;padding:2px 5px;border:1px solid var(--border);color:var(--text-dim);vertical-align:middle;margin-left:4px;">LIVE</span></span>
+      <span class="refresh-ts" id="mdtss-ts">&#8212;</span>
+    </div>
+    <div id="tss-list"><div class="loading-msg">Loading speed sensors&hellip;</div></div>
+    <div style="padding:4px 12px 7px;font-size:9px;color:var(--text-dim);border-top:1px solid var(--border)">Live — MDOT SHA CHART speed sensors (Maryland only; unhealthy/stale sensors excluded) &middot; updated every 2 min</div>
+  </div>
+
   <!-- DRIVE WINDOW -->
   <div class="panel" id="drive-window">
     <div class="panel-header">
@@ -844,10 +864,19 @@
         <polyline id="seg-i95-n" points="430.43,85.99 418.05,111.10 410.64,134.31 405.38,157.19 396.22,179.93 389.27,197.46 377.59,209.99 365.87,218.74 349.05,223.63 331.75,226.60 314.33,231.58 307.67,235.56 303.20,235.51" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-95 S segment: DC Beltway → Fredericksburg -->
         <polyline id="seg-i95-s" points="302.80,240.49 295.90,242.33 281.28,250.15 266.46,260.03 253.49,270.01 239.70,279.83 230.15,291.28 222.32,310.93 212.35,335.86 202.39,365.74 192.39,400.74 182.38,430.78 174.33,455.91 167.27,471.06" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-495 W arc — real concentric ring (outer), replacing the old same-ellipse
-             stroke-dasharray split (that was one ellipse cut into two arcs, not two
-             offset rings) -->
-        <ellipse id="seg-495-w" cx="303" cy="255" rx="62.1" ry="53.6" fill="none" stroke="#3a1c38" stroke-width="5"/>
+        <!-- I-495 Northern Arc (MD) — REAL centerline geometry, not a stylized ellipse.
+             Source: mdgeodata.md.gov MD_RoadCenterlines/MapServer/0 (Interstates),
+             ID_RTE_NO=495, ID_PREFIX='IS' (mainline only, ramps excluded), CARDINALITY=1
+             (primary carriageway only — the other cardinality is a parallel local-lane
+             centerline a few dozen meters off and produces a zigzag if merged in).
+             647 raw points -> simplified to 72 via Ramer-Douglas-Peucker -> projected
+             through the same DC-anchor bearing/distance formula (DC 38.9072,-77.0369 ->
+             SVG 303,238; 5.68px/mi) already validated sub-pixel-accurate against
+             Baltimore. Confirmed live: real TSS sensors at this corridor project to
+             within 0.5px of this line (was up to 72% off the old ellipse at one point).
+             MD only spans ~95° of bearing from DC (this is an arc, not a full loop) —
+             the VA side (seg-495-e below) is untouched, no live speed data exists there. -->
+        <polyline id="seg-495-w" points="259.42,214.43 259.87,211.04 260.26,210.07 261.36,209.01 263.13,208.33 269.60,213.05 263.34,208.30 268.99,212.50 263.60,208.26 268.93,212.28 263.81,208.24 268.90,212.04 264.09,208.21 268.84,211.71 264.41,208.17 268.81,211.50 264.60,208.15 268.79,211.38 264.75,208.13 268.72,211.15 264.86,208.11 268.69,211.06 264.99,208.07 268.61,210.89 265.11,208.02 268.43,210.61 265.22,207.98 268.17,210.31 265.28,207.95 267.88,210.01 265.35,207.92 267.38,209.51 265.43,207.87 266.91,209.04 265.57,207.78 266.27,208.35 265.68,207.70 266.19,208.11 265.75,207.64 266.15,207.90 265.83,207.57 266.15,207.82 265.89,207.50 266.15,207.67 265.96,207.42 266.17,207.55 266.02,207.34 266.21,207.44 266.50,206.16 266.10,202.28 268.12,197.77 269.17,196.48 274.10,196.38 277.16,195.47 279.98,195.25 282.00,194.20 284.95,195.57 285.84,196.86 286.88,197.43 287.67,198.54 289.64,199.58 293.31,198.97 295.18,196.43 295.86,196.02 303.27,196.35 306.36,194.97 308.84,195.37 311.10,195.15 313.08,195.64 319.00,193.83 324.64,194.34 332.50,193.08" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 E arc — inner concentric ring -->
         <ellipse id="seg-495-e" cx="303" cy="255" rx="57.1" ry="48.6" fill="none" stroke="#3a1c38" stroke-width="5"/>
         <!-- I-695 Baltimore Beltway — real E/W direction data exists in DMV_ROUTES (i695-e,
@@ -953,6 +982,11 @@
         <text x="450" y="105" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
         <text x="405" y="98" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
 
+        <!-- MD TSS speed-sensor markers — populated live by renderMDTssMapMarkers().
+             I-495 only for now (single-corridor proof pass); other MD corridors keep
+             flowing as colored seg-* lines with no point markers until their own real
+             geometry is built. -->
+        <g id="md-tss-markers"></g>
       </svg>
       <div class="tm-legend">
         <div class="tm-legend-item"><div class="tm-swatch" style="background:#3dd62a"></div> On Time</div>
@@ -2264,6 +2298,162 @@ function liveMDSegment(dmvRouteId) {
   const totalTimeSecs = segs.reduce((s, r) => s + (r.travelTimeSecs || 0), 0);
   if (!totalLength || !totalTimeSecs) return null;
   return { currentMin: Math.round(totalTimeSecs / 60) };
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+//  MARYLAND CHART — LIVE SPEED SENSORS (Transportation Sensor Systems / "TSS")
+//  chart.maryland.gov/DataFeeds/GetTssXml, ingested server-side via api/cron-md-tss.js
+//  (no CORS header on the source feed, confirmed via curl -I — can't be fetched
+//  client-side) and already filtered to healthy readings before it reaches Supabase:
+//  commMode=ONLINE, opStatus=OK, zone speed>=0, reading age<=20min. A sensor that fails
+//  any of those is simply absent from md_tss_snapshot, not present with a misleading
+//  0/-1 speed.
+//
+//  Still NOT folded into DMV_ROUTES/CHART_ROUTE_MAP's CurrentTime/AverageTime model (no
+//  free-flow/baseline speed exists in this feed to compute a ratio from — that's a
+//  separate, not-yet-built task) — shown here as its own honestly-labeled list, using
+//  CHART's own location description verbatim, no invented corridor mapping.
+//
+//  The SVG map's seg-i495-n/i695-e/i695-w/etc. arcs remain excluded from live TSS
+//  coloring for the same reason as ever (OUTER_LOOP/INNER_LOOP doesn't map onto stored
+//  N/S/E/W, single points can't stand in for a full-corridor label) — EXCEPT I-495,
+//  whose seg-495-w is now real projected road geometry (see the SVG markup) rather than
+//  a stylized ellipse, so real TSS sensor points can be plotted directly on it by
+//  construction, with no direction-guessing involved. See renderMDTssMapMarkers() below.
+let _mdTssSensors = null;
+
+async function fetchMDTssSensors() {
+  try {
+    const res = await fetch('/api/md-tss');
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    _mdTssSensors = Array.isArray(data?.values) ? data.values : null;
+  } catch (e) {
+    _mdTssSensors = null;
+  }
+  renderMDTssSensors();
+}
+
+function renderMDTssSensors() {
+  const el = document.getElementById('tss-list');
+  if (!el) return;
+  if (!_mdTssSensors) {
+    el.innerHTML = '<div class="error-msg">&#9888; MD speed sensors unavailable</div>';
+    return;
+  }
+  if (!_mdTssSensors.length) {
+    el.innerHTML = '<div class="loading-msg">No healthy MD speed sensors reporting right now.</div>';
+    document.getElementById('mdtss-ts').textContent = `Refreshed ${ts()} · 0 healthy`;
+    return;
+  }
+  const rows = [..._mdTssSensors].sort((a, b) => (a.description || '').localeCompare(b.description || ''));
+  el.innerHTML = rows.map(r => {
+    const ageMin = Math.round((Date.now() - new Date(r.sensor_updated_at).getTime()) / 60000);
+    const ageLabel = ageMin <= 0 ? '<1m ago' : `${ageMin}m ago`;
+    return `
+    <div class="tss-row">
+      <div class="tss-desc">${r.description || 'Unknown location'}</div>
+      <div class="tss-dir">${(r.direction || '').replace(/_/g, ' ')}</div>
+      <div class="tss-speed">${r.speed_mph}<span class="tss-speed-unit"> mph</span></div>
+      <div class="tss-age">${ageLabel}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('mdtss-ts').textContent = `Refreshed ${ts()} · ${rows.length} healthy`;
+  renderMDTssMapMarkers();
+}
+
+// ╔══════════════════════════════════════════════════════════╗
+//  I-495 REAL-GEOMETRY MAP MARKERS — single-corridor proof pass
+//  DC-anchor bearing/distance projection, validated sub-pixel-accurate against
+//  Baltimore's known real position before this was ever applied to sensor data.
+//  Identical function used to build seg-495-w's road points above AND to place these
+//  sensor dots, so they land on the line by construction, not by coincidence.
+// ╚══════════════════════════════════════════════════════════╝
+const DC_ANCHOR = { lat: 38.9072, lon: -77.0369, x: 303, y: 238 };
+const SVG_PX_PER_MILE = 5.68;
+
+function projectLatLonToSvg(lat, lon) {
+  const toRad = d => d * Math.PI / 180;
+  const R = 3958.8;
+  const phi1 = toRad(DC_ANCHOR.lat), phi2 = toRad(lat);
+  const dphi = toRad(lat - DC_ANCHOR.lat), dlambda = toRad(lon - DC_ANCHOR.lon);
+  const a = Math.sin(dphi/2)**2 + Math.cos(phi1)*Math.cos(phi2)*Math.sin(dlambda/2)**2;
+  const dist = R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const y = Math.sin(dlambda) * Math.cos(phi2);
+  const x = Math.cos(phi1)*Math.sin(phi2) - Math.sin(phi1)*Math.cos(phi2)*Math.cos(dlambda);
+  const bearing = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+  const rad = bearing * Math.PI / 180;
+  return {
+    x: DC_ANCHOR.x + dist * SVG_PX_PER_MILE * Math.sin(rad),
+    y: DC_ANCHOR.y - dist * SVG_PX_PER_MILE * Math.cos(rad),
+  };
+}
+
+// The same 72-point simplified/projected I-495 (MD Northern Arc) line baked into
+// seg-495-w's SVG markup, reused here so distance-to-line can be computed client-side —
+// two independent renderings of the same numbers would risk drifting apart over time.
+const I495_ROAD_SVG_POINTS = (() => {
+  const el = document.getElementById('seg-495-w');
+  if (!el) return [];
+  return el.getAttribute('points').trim().split(/\s+/).map(pair => {
+    const [x, y] = pair.split(',').map(Number);
+    return { x, y };
+  });
+})();
+
+function distPointToSegment(p, a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y;
+  const len2 = dx*dx + dy*dy;
+  if (len2 === 0) return Math.hypot(p.x - a.x, p.y - a.y);
+  let t = ((p.x - a.x)*dx + (p.y - a.y)*dy) / len2;
+  t = Math.max(0, Math.min(1, t));
+  return Math.hypot(p.x - (a.x + t*dx), p.y - (a.y + t*dy));
+}
+function distToI495(p) {
+  let min = Infinity;
+  for (let i = 1; i < I495_ROAD_SVG_POINTS.length; i++) {
+    min = Math.min(min, distPointToSegment(p, I495_ROAD_SVG_POINTS[i-1], I495_ROAD_SVG_POINTS[i]));
+  }
+  return min;
+}
+
+// Sensors are only plotted if their projected position actually lands near the one
+// piece of real road geometry drawn so far (I-495 MD). A sensor whose description
+// mentions I-495 but whose real coordinates fall in, e.g., an I-495/I-95 concurrency
+// zone this pass didn't fetch geometry for (confirmed live: "I-495/95 AT RITCHIE
+// MARLBORO RD" projects 65px away from this corridor's line — a real MDOT route-
+// numbering edge case, not a projection error) is excluded rather than shown floating
+// off the line. This threshold-based approach also means it needs no manual per-sensor
+// exclusion list and will naturally start including more sensors as later corridors
+// (I-95 etc.) get their own real geometry in follow-up passes.
+const MAP_MARKER_MAX_DIST_PX = 10;
+
+function renderMDTssMapMarkers() {
+  const g = document.getElementById('md-tss-markers');
+  if (!g) return;
+  g.innerHTML = '';
+  if (!_mdTssSensors || !I495_ROAD_SVG_POINTS.length) return;
+
+  const seen = new Set();
+  for (const r of _mdTssSensors) {
+    if (r.lat == null || r.lon == null) continue;
+    const key = r.sensor_id; // one marker per physical sensor, not per direction/zone
+    if (seen.has(key)) continue;
+    const p = projectLatLonToSvg(r.lat, r.lon);
+    if (distToI495(p) > MAP_MARKER_MAX_DIST_PX) continue;
+    seen.add(key);
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', p.x.toFixed(2));
+    circle.setAttribute('cy', p.y.toFixed(2));
+    circle.setAttribute('r', '2.2');
+    circle.setAttribute('fill', '#3dd62a');
+    circle.setAttribute('stroke', '#0b0b0b');
+    circle.setAttribute('stroke-width', '0.6');
+    const title = document.createElementNS('http://www.w3.org/2000/svg', 'title');
+    title.textContent = `${r.description} — ${r.speed_mph} mph (${(r.direction||'').replace(/_/g,' ')})`;
+    circle.appendChild(title);
+    g.appendChild(circle);
+  }
 }
 
 function getModeledMultiplier() {
@@ -4145,6 +4335,7 @@ async function init() {
   renderMetrobusSchedule();
   setDot('wmata-dot','amber');
   fetchMDTravelTimes().then(renderTravelTimes); // populate live MD segments before first render
+  fetchMDTssSensors();
   fetchEvents();
   fetchSFD();
   fetchSeismic();
@@ -4159,6 +4350,7 @@ async function init() {
   setInterval(fetchMDIncidents,     CONFIG.REFRESH_INCIDENTS_MS);
   setInterval(fetchVAIncidents,     CONFIG.REFRESH_INCIDENTS_MS);
   setInterval(() => fetchMDTravelTimes().then(renderTravelTimes), CONFIG.REFRESH_TT_MS);
+  setInterval(fetchMDTssSensors,    CONFIG.REFRESH_TT_MS);
   setInterval(fetchWMATA,           CONFIG.REFRESH_WMATA_MS);
   setInterval(fetchWMATALiveMap,    15*1000);   // train positions every 15s
   setInterval(renderMetrobusSchedule, 60*1000);

@@ -856,14 +856,33 @@
         <polyline points="200.00,248.00 200.95,238.00 191.90,230.00 181.85,224.00 174.80,220.00" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
 
         <!-- ═══ HIGHWAYS — colored segments (updated by JS) ═══ -->
-        <!-- I-95 N segment: Baltimore → DC Beltway — offset 2.5px perpendicular to each
-             sub-segment's own direction (per-vertex averaged unit-perpendicular of adjacent
-             segments), NOT the same "303,238" endpoint the S segment starts at. Previously
-             both shared that exact joint coordinate with zero separation — same line,
-             two DOM elements — confirmed via the real coordinates before this fix. -->
-        <polyline id="seg-i95-n" points="430.43,85.99 418.05,111.10 410.64,134.31 405.38,157.19 396.22,179.93 389.27,197.46 377.59,209.99 365.87,218.74 349.05,223.63 331.75,226.60 314.33,231.58 307.67,235.56 303.20,235.51" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-95 S segment: DC Beltway → Fredericksburg -->
-        <polyline id="seg-i95-s" points="302.80,240.49 295.90,242.33 281.28,250.15 266.46,260.03 253.49,270.01 239.70,279.83 230.15,291.28 222.32,310.93 212.35,335.86 202.39,365.74 192.39,400.74 182.38,430.78 174.33,455.91 167.27,471.06" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-95 N/S — REAL centerline (MD portion only; VA continuation south of DC has
+             no MD source and is not drawn here). Source: mdgeodata.md.gov
+             MD_RoadCenterlines/MapServer/0, ID_RTE_NO=95, ID_PREFIX='IS'. Segment-level
+             chaining (not bearing-sort — this corridor's ~155° diagonal sweep from DC
+             made bearing-sort workable in principle, but segment-level endpoint chaining
+             was used for consistency and to cross-check). CARDINALITY handling: the
+             coverage-equivalence check found gaps card=1-only would miss, so both
+             cardinalities were fetched; a >1mi-gap safeguard then dropped 15 genuinely
+             disconnected fragments (far-Delaware Express Toll Lane/JFK Hwy segments and
+             one isolated ~42pt fragment near Jessup with no real endpoint match to the
+             rest of the trunk) rather than force-connecting them with a fabricated chord
+             — see console log in cron/build tooling for the exact dropped list.
+             5,076 raw points -> 141 simplified -> TRUNCATED to 113 points: the real
+             geometry continues north past Baltimore's Fort McHenry Tunnel to y=-54.5,
+             off the top of this 0 0 760 490 canvas. Clipped at the exact y=0 boundary
+             (linear interpolation between the last two points straddling it, not just
+             dropped at the nearest existing point) so the line ends cleanly at the edge
+             rather than spilling past it. All 49 currently-healthy I-95 sensors verified
+             within 0.01-2.37px of this line; none fall in the truncated (off-canvas)
+             portion as of this integration, but the marker-plotting code still checks
+             on-canvas bounds explicitly in case that changes. Expanding the canvas to
+             show the full northern extent is a separate future task. -->
+        <polyline id="seg-i95-n" points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-95 S — same real geometry as seg-i95-n above (this app tracks i95-n/i95-s
+             as separate directions per DMV_ROUTES; both now point at the same real
+             centerline, colored independently). -->
+        <polyline id="seg-i95-s" points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 Northern Arc (MD) — REAL centerline geometry, not a stylized ellipse.
              Source: mdgeodata.md.gov MD_RoadCenterlines/MapServer/0 (Interstates),
              ID_RTE_NO=495, ID_PREFIX='IS' (mainline only, ramps excluded), CARDINALITY=1
@@ -879,27 +898,74 @@
         <polyline id="seg-495-w" points="259.42,214.43 259.87,211.04 260.26,210.07 261.36,209.01 263.13,208.33 269.60,213.05 263.34,208.30 268.99,212.50 263.60,208.26 268.93,212.28 263.81,208.24 268.90,212.04 264.09,208.21 268.84,211.71 264.41,208.17 268.81,211.50 264.60,208.15 268.79,211.38 264.75,208.13 268.72,211.15 264.86,208.11 268.69,211.06 264.99,208.07 268.61,210.89 265.11,208.02 268.43,210.61 265.22,207.98 268.17,210.31 265.28,207.95 267.88,210.01 265.35,207.92 267.38,209.51 265.43,207.87 266.91,209.04 265.57,207.78 266.27,208.35 265.68,207.70 266.19,208.11 265.75,207.64 266.15,207.90 265.83,207.57 266.15,207.82 265.89,207.50 266.15,207.67 265.96,207.42 266.17,207.55 266.02,207.34 266.21,207.44 266.50,206.16 266.10,202.28 268.12,197.77 269.17,196.48 274.10,196.38 277.16,195.47 279.98,195.25 282.00,194.20 284.95,195.57 285.84,196.86 286.88,197.43 287.67,198.54 289.64,199.58 293.31,198.97 295.18,196.43 295.86,196.02 303.27,196.35 306.36,194.97 308.84,195.37 311.10,195.15 313.08,195.64 319.00,193.83 324.64,194.34 332.50,193.08" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 E arc — inner concentric ring -->
         <ellipse id="seg-495-e" cx="303" cy="255" rx="57.1" ry="48.6" fill="none" stroke="#3a1c38" stroke-width="5"/>
-        <!-- I-695 Baltimore Beltway — real E/W direction data exists in DMV_ROUTES (i695-e,
-             i695-w) but the single ellipse below only ever showed E ("east arc proxy").
-             Split into outer/inner concentric rings, one per real direction. -->
-        <ellipse id="seg-695-e" cx="427.5" cy="92.4" rx="33.7" ry="29.8" fill="none" stroke="#3a1c38" stroke-width="4"/>
-        <ellipse id="seg-695-w" cx="427.5" cy="92.4" rx="28.7" ry="24.8" fill="none" stroke="#3a1c38" stroke-width="4"/>
-        <!-- I-270 — real N/S direction data exists (i270-s, i270-n) but the single polyline
-             below only ever showed S ("south (peak direction)"). Split into two
-             perpendicular-offset polylines, one per real direction. -->
-        <polyline id="seg-i270-s" points="304.95,236.44 301.27,220.91 290.63,202.45 280.19,182.18 267.70,158.87 254.18,133.52 238.64,106.17 223.02,78.72 207.22,55.13 190.51,36.64" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <polyline id="seg-i270-n" points="301.05,239.56 297.67,224.37 287.23,206.11 276.61,185.66 264.02,162.25 250.48,136.88 234.94,109.53 219.50,82.26 204.22,59.13 187.87,40.90" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-695 Baltimore Beltway — REAL centerline, NOT the full closed loop. Source:
+             mdgeodata.md.gov MD_RoadCenterlines/MapServer/0, ID_RTE_NO=695, ID_PREFIX='IS',
+             both cardinalities (coverage of the ring splits unevenly between them).
+             Ordered by bearing FROM BALTIMORE (39.2904,-76.6122), not from DC — this loop
+             circles Baltimore, not DC, so bearing-from-DC gave only a ~21° wedge, useless
+             as an ordering key (confirmed via diagnostic before building). Final SVG
+             projection still uses the same DC-anchor formula as every other corridor.
+             Confirmed by hand: the true angular span from Baltimore's own center is only
+             230.7° — a genuine ~130° gap exists in MDOT's own data (not a chaining
+             artifact; verified by rendering the open arc and finding it clean, ratio 4.6,
+             vs. a fabricated closed-ring attempt that produced a visible false chord).
+             Rendered as an honest open arc, same principle as I-495's partial arc — NOT
+             force-closed into a full ring. 2,657 raw points -> 79 simplified. All 23
+             currently-healthy I-695 sensors verified within 0.03-6.83px of this line.
+             Both directions (i695-e, i695-w) point at this same real arc; DMV_ROUTES
+             colors them independently. -->
+        <polyline id="seg-695-e" points="427.16,121.57 425.11,121.76 420.21,118.34 418.47,116.21 415.62,110.53 414.75,106.98 411.61,103.03 409.46,101.42 405.37,99.88 398.69,95.10 398.06,94.35 397.31,91.86 393.97,89.46 392.88,88.12 392.48,86.84 391.72,79.10 391.70,67.61 391.05,59.05 390.53,56.90 391.96,52.82 394.02,51.47 395.61,49.65 397.49,48.65 401.80,47.96 405.29,46.39 409.19,45.87 412.58,42.72 414.61,41.71 418.18,37.64 420.46,36.31 422.45,36.25 425.01,36.96 429.92,39.30 432.22,38.80 435.18,39.21 438.89,38.70 440.87,39.74 444.90,43.44 445.81,43.75 447.68,43.40 448.57,43.65 453.21,47.13 456.53,48.61 458.75,50.12 459.67,51.39 460.68,54.94 462.91,57.08 465.13,60.99 465.87,61.54 465.72,61.85 466.37,62.10 466.08,62.36 466.57,62.32 466.48,62.94 466.98,62.73 466.57,63.07 467.04,62.80 466.65,63.20 467.21,63.01 466.74,63.37 467.27,63.09 466.87,63.62 467.46,63.40 467.01,63.94 467.60,63.74 467.09,64.15 467.65,63.86 467.14,64.30 467.70,64.02 467.21,64.53 467.76,64.27 467.26,64.66 467.79,64.39 467.30,64.82 467.81,64.52 467.34,64.96 467.84,64.73 467.47,65.52 467.90,65.51" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-695-w" points="427.16,121.57 425.11,121.76 420.21,118.34 418.47,116.21 415.62,110.53 414.75,106.98 411.61,103.03 409.46,101.42 405.37,99.88 398.69,95.10 398.06,94.35 397.31,91.86 393.97,89.46 392.88,88.12 392.48,86.84 391.72,79.10 391.70,67.61 391.05,59.05 390.53,56.90 391.96,52.82 394.02,51.47 395.61,49.65 397.49,48.65 401.80,47.96 405.29,46.39 409.19,45.87 412.58,42.72 414.61,41.71 418.18,37.64 420.46,36.31 422.45,36.25 425.01,36.96 429.92,39.30 432.22,38.80 435.18,39.21 438.89,38.70 440.87,39.74 444.90,43.44 445.81,43.75 447.68,43.40 448.57,43.65 453.21,47.13 456.53,48.61 458.75,50.12 459.67,51.39 460.68,54.94 462.91,57.08 465.13,60.99 465.87,61.54 465.72,61.85 466.37,62.10 466.08,62.36 466.57,62.32 466.48,62.94 466.98,62.73 466.57,63.07 467.04,62.80 466.65,63.20 467.21,63.01 466.74,63.37 467.27,63.09 466.87,63.62 467.46,63.40 467.01,63.94 467.60,63.74 467.09,64.15 467.65,63.86 467.14,64.30 467.70,64.02 467.21,64.53 467.76,64.27 467.26,64.66 467.79,64.39 467.30,64.82 467.81,64.52 467.34,64.96 467.84,64.73 467.47,65.52 467.90,65.51" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-270 — REAL centerline. Source: mdgeodata.md.gov MD_RoadCenterlines/MapServer/0,
+             ID_RTE_NO=270, ID_PREFIX='IS', CARDINALITY=1. Segment-level chaining, not
+             bearing-sort — this corridor is a near-radial line from DC (only a 16.3°
+             bearing wedge, wide 8.5-39.9mi distance range), which makes bearing a
+             degenerate/useless ordering key; endpoint-matching chaining used instead.
+             Drop-safeguard (>1mi gap threshold) correctly excluded 3 fragments that are a
+             genuinely separate, physically parallel "IS 270 LOCAL LANES" carriageway
+             (real, but not through-line geometry) rather than force-connecting them.
+             1,059 raw points -> 41 simplified. All 30 currently-healthy I-270 sensors
+             verified within 0.04-0.31px. Both directions (i270-s, i270-n) point at this
+             same real centerline; DMV_ROUTES colors them independently. -->
+        <polyline id="seg-i270-s" points="185.22,44.73 190.51,52.36 195.12,63.79 197.68,67.73 202.25,72.93 206.32,74.79 208.01,79.15 210.96,82.04 211.60,83.95 213.05,85.73 213.57,87.76 214.99,89.92 215.97,92.42 218.57,94.87 219.34,97.13 223.33,104.13 227.32,109.88 228.67,112.86 230.73,119.62 234.30,124.04 235.98,127.91 238.76,132.06 240.65,135.76 241.70,137.07 244.75,139.27 247.78,142.41 248.76,144.06 250.70,148.88 254.49,154.83 258.92,160.39 259.93,162.65 262.04,169.63 263.11,171.42 265.24,173.70 266.20,175.25 267.82,181.40 270.26,187.33 271.92,188.69 279.80,190.51 280.98,191.48 282.79,194.07" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i270-n" points="185.22,44.73 190.51,52.36 195.12,63.79 197.68,67.73 202.25,72.93 206.32,74.79 208.01,79.15 210.96,82.04 211.60,83.95 213.05,85.73 213.57,87.76 214.99,89.92 215.97,92.42 218.57,94.87 219.34,97.13 223.33,104.13 227.32,109.88 228.67,112.86 230.73,119.62 234.30,124.04 235.98,127.91 238.76,132.06 240.65,135.76 241.70,137.07 244.75,139.27 247.78,142.41 248.76,144.06 250.70,148.88 254.49,154.83 258.92,160.39 259.93,162.65 262.04,169.63 263.11,171.42 265.24,173.70 266.20,175.25 267.82,181.40 270.26,187.33 271.92,188.69 279.80,190.51 280.98,191.48 282.79,194.07" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-66 — real E/W direction data exists (i66-e, i66-w) but the single polyline
              below only ever showed E ("eastbound (peak)"). Split into two
              perpendicular-offset polylines, one per real direction. -->
         <polyline id="seg-i66-e" points="303.22,235.51 285.88,233.38 271.42,231.25 256.95,231.13 243.60,231.00 219.37,231.07 196.04,231.14 167.71,233.22 139.51,235.30 106.31,237.36 63.11,239.43 19.88,241.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
         <polyline id="seg-i66-w" points="302.78,240.49 285.42,238.37 271.18,236.25 256.95,236.13 243.60,236.00 219.37,236.07 196.24,236.14 168.11,238.20 139.87,240.28 106.61,242.36 63.35,244.43 20.12,246.50" fill="none" stroke="#3a1c38" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-83 -->
-        <line id="seg-i83" x1="432.5" y1="24.4" x2="432.5" y2="87.4" stroke="#3a1c38" stroke-width="3" stroke-linecap="round"/>
-        <!-- US-50 -->
-        <polyline id="seg-us50" points="303.00,238.00 324.49,224.57 348.97,217.14 373.46,213.71 397.94,211.29 422.43,209.86 446.91,209.43 469.40,210.00 501.40,210.00 536.40,210.00 576.40,212.00 601.40,217.00" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-97 -->
-        <polyline id="seg-i97" points="397.50,119.40 386.28,140.92 380.06,162.44 373.84,183.96 370.62,203.48 469.40,210.00" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-83 — REAL centerline. Source: mdgeodata.md.gov MD_RoadCenterlines/MapServer/0,
+             ID_RTE_NO=83, ID_PREFIX='IS', CARDINALITY=1. Segment-level chaining (near-radial
+             from DC, 19.8-40.9° wedge — bearing-sort unusable for the same reason as
+             I-270). 1,193 raw points -> 59 simplified, zero dropped segments needed. Was a
+             <line>, now a <polyline> to carry the real curve.
+             Like I-95, the real geometry continues north past the drawn extent (Baltimore
+             to the PA state line runs to y=-81.7, off the top of this 0 0 760 490 canvas) —
+             caught during integration verification, not during the original per-corridor
+             build pass. Given the identical clean-cut precedent already agreed for I-95,
+             TRUNCATED the same way: exact y=0 crossing found by linear interpolation between
+             the two straddling points (not dropped at the nearest existing point), cutting
+             59 simplified points to 35. All 4 distinct on-canvas I-83 sensors (Old Pimlico
+             Rd, Ex 20 Shawan Rd, Ex 17 Padonia Rd) verified within 0.04-0.27px of the
+             retained line; the 2 sensors north of the cut (Mt Carmel Rd at y=-31.3, Cold
+             Bottom Rd at y=-14.3/-16.2) are genuinely off-canvas and correctly excluded by
+             the marker code's on-canvas bounds check, not a data or projection error. -->
+        <polyline id="seg-i83" points="433.77,87.18 432.51,85.83 432.19,81.40 431.06,81.06 427.94,78.67 426.96,77.30 425.68,74.22 423.37,72.88 422.98,71.26 421.26,68.42 421.57,63.95 420.51,61.46 420.21,57.22 419.15,54.36 417.34,52.49 415.24,46.72 415.36,45.89 416.38,44.21 416.76,42.96 416.68,41.19 416.19,39.82 418.05,37.75 420.02,36.47 421.44,36.19 423.28,36.57 425.09,31.96 425.33,30.57 424.72,26.51 424.15,25.18 418.16,20.39 417.18,19.11 416.52,17.45 414.84,5.47 415.03,3.87 416.15,0.00" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round"/>
+        <!-- US-50 — REAL centerline, DC-Annapolis/Bay Bridge stretch only (bbox-restricted
+             at fetch time; the real route continues to Ocean City, well beyond this
+             schematic map's drawn extent). Source: mdgeodata.md.gov
+             MD_RoadCenterlines/MapServer/1 (US Routes — note ID_PREFIX='US', not 'IS';
+             a first attempt using the Interstate prefix returned zero features). CARDINALITY=1,
+             827 raw points -> 41 simplified, 1 fragment dropped (4.1mi gap). All in-scope
+             sensors verified within 0-0.23px; several genuinely out-of-scope Eastern
+             Shore/Ocean City sensors (75-414px away) are correctly excluded by the
+             existing distance-threshold logic, not a data error. -->
+        <polyline id="seg-us50" points="332.15,233.72 334.28,233.30 338.45,234.29 341.47,233.25 343.30,231.97 345.21,229.23 349.25,225.70 350.25,224.09 351.04,223.67 364.82,222.26 371.59,222.53 378.08,223.64 386.90,222.65 392.42,219.95 397.79,219.70 401.14,219.00 413.02,218.59 425.53,215.38 431.13,211.06 436.39,207.75 443.93,207.31 450.34,208.12 456.10,206.59 462.51,203.09 467.07,196.67 477.47,190.57 478.92,190.11 486.03,190.97 493.17,193.37 494.38,194.53 497.78,201.23 499.41,202.53 526.44,210.49 528.13,210.68 531.27,210.10 536.68,210.58 542.66,211.65 556.94,215.53 564.13,212.32 565.62,210.87 567.47,208.25" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-97 — REAL centerline. Source: mdgeodata.md.gov MD_RoadCenterlines/MapServer/0,
+             ID_RTE_NO=97, ID_PREFIX='IS', CARDINALITY=1. Single segment, no chaining/
+             ordering risk. 478 raw points -> 41 simplified. All 13 currently-healthy
+             I-97 sensors verified within 0.03-3.77px. -->
+        <polyline id="seg-i97" points="445.05,207.23 443.96,206.97 443.38,206.55 442.23,204.10 441.32,203.06 438.36,201.68 436.11,199.33 433.64,198.20 432.91,197.58 432.55,196.72 431.51,191.58 431.55,190.86 432.17,189.21 432.41,188.08 432.41,186.87 432.06,185.52 431.07,183.95 428.91,182.05 426.51,178.97 424.22,177.00 423.78,176.13 423.79,175.23 424.12,174.51 426.22,172.72 427.25,171.33 428.39,168.49 428.59,167.50 428.53,166.66 426.87,159.59 424.77,154.70 422.98,149.41 422.63,147.28 422.11,140.32 422.32,138.65 423.72,134.67 425.91,130.10 426.07,128.89 425.98,126.04 426.30,122.05 426.48,121.43 426.83,120.93" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-295 / BW Pkwy -->
         <polyline id="seg-i295" points="330.00,238.00 336.75,216.44 345.50,197.88 352.25,177.32 359.00,155.76 365.75,137.20 372.50,118.64 382.25,103.08 394.00,89.52 410.75,79.96 427.50,72.40" fill="none" stroke="#3a1c38" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- VA-267 Dulles Toll Road -->
@@ -2389,17 +2455,26 @@ function projectLatLonToSvg(lat, lon) {
   };
 }
 
-// The same 72-point simplified/projected I-495 (MD Northern Arc) line baked into
-// seg-495-w's SVG markup, reused here so distance-to-line can be computed client-side —
-// two independent renderings of the same numbers would risk drifting apart over time.
-const I495_ROAD_SVG_POINTS = (() => {
-  const el = document.getElementById('seg-495-w');
-  if (!el) return [];
-  return el.getAttribute('points').trim().split(/\s+/).map(pair => {
-    const [x, y] = pair.split(',').map(Number);
-    return { x, y };
-  });
-})();
+// Real road geometry now exists for 7 of 8 MD-side corridors (I-295/BW Pkwy remains
+// modeled — the Parkway is federally/NPS-owned, absent from MDOT's centerline dataset,
+// confirmed by searching the full DC-Baltimore bbox by name and finding nothing; a
+// partial substitute from the short unrelated "Anacostia Freeway" fragment under the
+// same route number would misrepresent the corridor, so it's left alone). One
+// representative seg-* id per corridor is read here (where a corridor has two DOM
+// elements for two DMV_ROUTES directions, e.g. seg-i95-n/seg-i95-s, both now point at
+// the identical real geometry, so reading either one is sufficient).
+const REAL_ROAD_SEG_IDS = ['seg-495-w', 'seg-i95-n', 'seg-i270-s', 'seg-us50', 'seg-695-e', 'seg-i83', 'seg-i97'];
+const REAL_ROAD_LINES = REAL_ROAD_SEG_IDS.map(id => {
+  const el = document.getElementById(id);
+  if (!el) return { id, points: [] };
+  return {
+    id,
+    points: el.getAttribute('points').trim().split(/\s+/).map(pair => {
+      const [x, y] = pair.split(',').map(Number);
+      return { x, y };
+    }),
+  };
+}).filter(line => line.points.length > 0);
 
 function distPointToSegment(p, a, b) {
   const dx = b.x - a.x, dy = b.y - a.y;
@@ -2409,30 +2484,40 @@ function distPointToSegment(p, a, b) {
   t = Math.max(0, Math.min(1, t));
   return Math.hypot(p.x - (a.x + t*dx), p.y - (a.y + t*dy));
 }
-function distToI495(p) {
+// Minimum distance from a projected point to ANY real road line drawn so far (not just
+// one corridor) — a sensor is only plotted if it lands near SOME real geometry. A
+// sensor whose description mentions a real corridor but whose true coordinates fall in
+// a concurrency zone or gap this pass didn't cover (confirmed live: "I-495/95 AT RITCHIE
+// MARLBORO RD" projects 65px away from I-495's line — a real MDOT route-numbering edge
+// case, not a projection error) is excluded rather than shown floating off the line.
+// Threshold-based, so it needs no manual per-sensor exclusion list and will naturally
+// pick up more sensors as I-295 (or a canvas-expanded I-95) gets real geometry later.
+function distToNearestRealRoad(p) {
   let min = Infinity;
-  for (let i = 1; i < I495_ROAD_SVG_POINTS.length; i++) {
-    min = Math.min(min, distPointToSegment(p, I495_ROAD_SVG_POINTS[i-1], I495_ROAD_SVG_POINTS[i]));
+  for (const line of REAL_ROAD_LINES) {
+    for (let i = 1; i < line.points.length; i++) {
+      min = Math.min(min, distPointToSegment(p, line.points[i-1], line.points[i]));
+    }
   }
   return min;
 }
-
-// Sensors are only plotted if their projected position actually lands near the one
-// piece of real road geometry drawn so far (I-495 MD). A sensor whose description
-// mentions I-495 but whose real coordinates fall in, e.g., an I-495/I-95 concurrency
-// zone this pass didn't fetch geometry for (confirmed live: "I-495/95 AT RITCHIE
-// MARLBORO RD" projects 65px away from this corridor's line — a real MDOT route-
-// numbering edge case, not a projection error) is excluded rather than shown floating
-// off the line. This threshold-based approach also means it needs no manual per-sensor
-// exclusion list and will naturally start including more sensors as later corridors
-// (I-95 etc.) get their own real geometry in follow-up passes.
 const MAP_MARKER_MAX_DIST_PX = 10;
+
+// I-95's real geometry is deliberately truncated at this canvas's y=0 edge (the real
+// corridor continues north past Baltimore's Fort McHenry Tunnel, off-canvas) — this is
+// a general safety net so no marker of ANY corridor can ever render invisibly off-canvas
+// if a future sensor's real position happens to fall outside the drawn viewBox, not
+// something that fires today (verified: none of the current 49 I-95 sensors are north
+// of the truncation).
+function isOnCanvas(p) {
+  return p.x >= 0 && p.x <= 760 && p.y >= 0 && p.y <= 490;
+}
 
 function renderMDTssMapMarkers() {
   const g = document.getElementById('md-tss-markers');
   if (!g) return;
   g.innerHTML = '';
-  if (!_mdTssSensors || !I495_ROAD_SVG_POINTS.length) return;
+  if (!_mdTssSensors || !REAL_ROAD_LINES.length) return;
 
   const seen = new Set();
   for (const r of _mdTssSensors) {
@@ -2440,7 +2525,8 @@ function renderMDTssMapMarkers() {
     const key = r.sensor_id; // one marker per physical sensor, not per direction/zone
     if (seen.has(key)) continue;
     const p = projectLatLonToSvg(r.lat, r.lon);
-    if (distToI495(p) > MAP_MARKER_MAX_DIST_PX) continue;
+    if (!isOnCanvas(p)) continue;
+    if (distToNearestRealRoad(p) > MAP_MARKER_MAX_DIST_PX) continue;
     seen.add(key);
     const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
     circle.setAttribute('cx', p.x.toFixed(2));

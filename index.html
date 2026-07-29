@@ -54,13 +54,22 @@
     align-items: center; column-gap: 18px;
     position: sticky; top: 0; z-index: 100;
   }
-  #header-brand { grid-area:brand; display:flex; flex-direction:column; gap:0; line-height:1; }
+  #header-brand { grid-area:brand; display:flex; flex-direction:column; gap:0; line-height:1; position:relative; }
   .brand-line1 { display:flex; align-items:baseline; }
   .brand-goat   { font-size:20px; font-weight:700; letter-spacing:0.04em; color:#f5eef0; }
   .brand-vision { font-size:20px; font-weight:300; font-style:italic; color:var(--gv-purple); }
   .brand-tm     { font-size:8px; color:var(--text-dim); vertical-align:super; margin-left:2px; }
   .brand-city   { font-size:10px; font-weight:700; letter-spacing:0.35em; color:var(--gold); text-transform:uppercase; margin-top:3px; }
   .brand-tagline{ font-size:8px; letter-spacing:0.18em; color:var(--text-dim); margin-top:2px; text-transform:uppercase; }
+  /* Scope note ("D.C. - Baltimore metro"): reuses .brand-tagline's exact type treatment,
+     no new size/color. Desktop: escapes #header-brand's flex-column stack via
+     position:absolute so it sits beside the brand block in the header's empty gap column
+     (grid-template-areas "brand . dots clock"), vertically centered against the full
+     3-line stack via top:50%/translateY. Below 1300px #header switches to a 2-row
+     "brand clock" / "dots dots" template with no gap column to sit in — reverted to
+     position:static there (see @media block) so it falls back into normal flow as a
+     4th stacked line, same quiet styling, nothing hidden. */
+  #brand-scope-note { position:absolute; left:100%; top:50%; transform:translateY(-50%); margin-left:18px; margin-top:0; white-space:nowrap; }
   #header .header-right { grid-area:dots; display:flex; gap:18px; align-items:center; font-size:11px; color:var(--text-dim); }
   #header .header-right span { display:flex; align-items:center; gap:4px; }
   #sys-time-wrap { grid-area:clock; }
@@ -143,16 +152,17 @@
   /* -- 7-DAY FORECAST -- */
   #forecast7-content { display:flex; flex-wrap:wrap; padding:0; }
   .f7-day {
-    flex:1; min-width:90px; padding:8px;
+    flex:1; min-width:90px; padding:10px 8px;
     border-right:1px solid var(--border);
     display:flex; flex-direction:column; align-items:center; gap:3px;
     text-align:center;
   }
   .f7-day:last-child { border-right:none; }
   .f7-dow    { font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--text-dim); font-weight:600; }
-  .f7-icon   { font-size:20px; line-height:1.2; }
-  .f7-hi     { font-size:14px; font-weight:700; color:var(--text-bright); }
-  .f7-lo     { font-size:11px; color:var(--text-dim); }
+  .f7-icon   { font-size:22px; line-height:1.2; }
+  .f7-desc   { font-size:8px; line-height:1.25; height:20px; display:flex; align-items:center; justify-content:center; text-align:center; color:var(--text-dim); overflow-wrap:break-word; }
+  .f7-hi     { font-size:15px; font-weight:700; color:var(--text-bright); }
+  .f7-lo     { font-size:12px; color:var(--text-dim); }
   .f7-precip { font-size:9px; color:var(--text-dim); min-height:11px; }
   .f7-precip.sev-amber { color:var(--amber); font-weight:600; }
   .f7-precip.sev-red   { color:var(--red);   font-weight:600; }
@@ -559,6 +569,13 @@
   @media (max-width:1300px) {
     #header { grid-template-columns:1fr auto; grid-template-areas:"brand clock" "dots dots"; row-gap:8px; column-gap:18px; align-items:start; }
     #header .header-right { flex-wrap:wrap; gap:8px 18px; }
+    /* No gap column to sit beside at this width — fall back to normal flow as a 4th
+       stacked line under the brand block (same as the other .brand-tagline lines),
+       not display:none. This file already tried hiding brand content at a narrow
+       breakpoint once (see the #header-brand mobile comment below) and moved away from
+       it because portrait phones land under that width while landscape often doesn't,
+       so the content vanished for the more common case rather than the rarer one. */
+    #brand-scope-note { position:static; margin-left:0; margin-top:2px; }
   }
 
   /* -- MOBILE -- */
@@ -627,6 +644,7 @@
     </div>
     <div class="brand-city">DMV</div>
     <div class="brand-tagline">See &middot; Plan &middot; Move</div>
+    <div class="brand-tagline" id="brand-scope-note">D.C. &ndash; Baltimore metro</div>
   </div>
   <div class="header-right">
     <span><span class="dot dot-green" id="weather-dot"></span> &#9729; Weather</span>
@@ -1712,12 +1730,17 @@ function wmoSeverity(code) {
   if (code>=61) return 0.6; if (code>=51) return 0.35; if (code>=45) return 0.25;
   if (code>=2)  return 0.1; return 0;
 }
-function wmoDesc(code) {
-  if (!code) return 'Clear';
-  if (code>=95) return 'Thunderstorm'; if (code>=80) return 'Heavy rain'; if (code>=71) return 'Snowfall';
-  if (code>=61) return 'Rain'; if (code>=51) return 'Drizzle'; if (code>=45) return 'Foggy';
-  if (code>=3)  return 'Overcast'; if (code>=2) return 'Partly cloudy'; return 'Clear';
-}
+const WMO_DESC = {
+  0:'Clear',1:'Mainly Clear',2:'Partly Cloudy',3:'Overcast',
+  45:'Fog',48:'Icy Fog',
+  51:'Light Drizzle',53:'Drizzle',55:'Heavy Drizzle',
+  61:'Light Rain',63:'Rain',65:'Heavy Rain',66:'Freezing Rain',67:'Heavy Freezing Rain',
+  71:'Light Snow',73:'Snow',75:'Heavy Snow',77:'Snow Grains',
+  80:'Light Showers',81:'Showers',82:'Violent Showers',
+  85:'Snow Showers',86:'Heavy Snow Showers',
+  95:'Thunderstorm',96:'T-Storm+Hail',99:'T-Storm Heavy Hail',
+};
+function wmoDesc(code) { return WMO_DESC[code] || `Code ${code}`; }
 function windSev(w) { if (w>=35) return 1; if (w>=25) return 0.7; if (w>=15) return 0.35; return 0; }
 function aqiLevel(aqi) {
   if (aqi==null) return { label:'—', cls:'', sub:'No data' };
@@ -2003,12 +2026,14 @@ function renderForecast7(data) {
     const hi     = daily.temperature_2m_max?.[i];
     const lo     = daily.temperature_2m_min?.[i];
     const code   = daily.weather_code?.[i];
+    const desc   = wmoDesc(code);
     const precip = daily.precipitation_probability_max?.[i] ?? 0;
     const precipSev = precip>=70 ? 'sev-red' : precip>=40 ? 'sev-amber' : '';
     return `
     <div class="f7-day">
       <div class="f7-dow">${dowLabel(dateStr, i)}</div>
       <div class="f7-icon">${wmoIcon(code)}</div>
+      <div class="f7-desc">${desc}</div>
       <div class="f7-hi">${hi!=null?Math.round(hi):'—'}°</div>
       <div class="f7-lo">${lo!=null?Math.round(lo):'—'}°</div>
       <div class="f7-precip ${precipSev}">${precip>0?`💧${precip}%`:'&nbsp;'}</div>

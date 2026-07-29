@@ -862,8 +862,6 @@
         <polyline points="445.05,207.23 443.96,206.97 443.38,206.55 442.23,204.10 441.32,203.06 438.36,201.68 436.11,199.33 433.64,198.20 432.91,197.58 432.55,196.72 431.51,191.58 431.55,190.86 432.17,189.21 432.41,188.08 432.41,186.87 432.06,185.52 431.07,183.95 428.91,182.05 426.51,178.97 424.22,177.00 423.78,176.13 423.79,175.23 424.12,174.51 426.22,172.72 427.25,171.33 428.39,168.49 428.59,167.50 428.53,166.66 426.87,159.59 424.77,154.70 422.98,149.41 422.63,147.28 422.11,140.32 422.32,138.65 423.72,134.67 425.91,130.10 426.07,128.89 425.98,126.04 426.30,122.05 426.48,121.43 426.83,120.93" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-295 / BW Pkwy: DC → Baltimore (parallel to I-95, east side) -->
         <polyline points="330.00,238.00 336.75,216.44 345.50,197.88 352.25,177.32 359.00,155.76 365.75,137.20 372.50,118.64 382.25,103.08 394.00,89.52 410.75,79.96 427.50,72.40" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-395: 14th St Bridge / Pentagon spur -->
-        <line x1="303" y1="238" x2="290" y2="262" stroke="#15103a" stroke-width="6" stroke-linecap="round"/>
         <!-- I-95 south continuation past Springfield to Fredericksburg already in main I-95 above -->
         <!-- VA-267 / Dulles Toll Road (W from Beltway to Dulles) -->
         <polyline points="200.00,248.00 200.95,238.00 191.90,230.00 181.85,224.00 174.80,220.00" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1062,9 +1060,9 @@
         <text x="405" y="98" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
 
         <!-- MD TSS speed-sensor markers — populated live by renderMDTssMapMarkers().
-             I-495 only for now (single-corridor proof pass); other MD corridors keep
-             flowing as colored seg-* lines with no point markers until their own real
-             geometry is built. -->
+             All 7 real corridors (I-495, I-95, I-270, US-50, I-695, I-83, I-97) plot
+             live sensor dots; I-295/VA-267/I-66/VA-side I-495 remain modeled with no
+             point markers until their own real geometry is built. -->
         <g id="md-tss-markers"></g>
       </svg>
       <div class="tm-legend">
@@ -1072,7 +1070,6 @@
         <div class="tm-legend-item"><div class="tm-swatch" style="background:#f0a500"></div> Slow (&gt;1.15x avg)</div>
         <div class="tm-legend-item"><div class="tm-swatch" style="background:#dc2626"></div> Heavy Delay (&gt;1.65x avg)</div>
         <div class="tm-legend-item"><div class="tm-swatch" style="background:#3a1c38"></div> No data</div>
-        <div class="tm-legend-item" style="font-style:italic;opacity:0.6">Frederick &rarr; Fredericksburg &rarr; Annapolis &rarr; Shenandoah</div>
       </div>
     </div>
   </div>

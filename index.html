@@ -54,7 +54,7 @@
     align-items: center; column-gap: 18px;
     position: sticky; top: 0; z-index: 100;
   }
-  #header-brand { grid-area:brand; display:flex; flex-direction:column; gap:0; line-height:1; position:relative; }
+  #header-brand { grid-area:brand; display:flex; flex-direction:column; gap:0; line-height:1; }
   .brand-line1 { display:flex; align-items:baseline; }
   .brand-goat   { font-size:20px; font-weight:700; letter-spacing:0.04em; color:#f5eef0; }
   .brand-vision { font-size:20px; font-weight:300; font-style:italic; color:var(--gv-purple); }
@@ -62,14 +62,14 @@
   .brand-city   { font-size:10px; font-weight:700; letter-spacing:0.35em; color:var(--gold); text-transform:uppercase; margin-top:3px; }
   .brand-tagline{ font-size:8px; letter-spacing:0.18em; color:var(--text-dim); margin-top:2px; text-transform:uppercase; }
   /* Scope note ("D.C. - Baltimore metro"): reuses .brand-tagline's exact type treatment,
-     no new size/color. Desktop: escapes #header-brand's flex-column stack via
-     position:absolute so it sits beside the brand block in the header's empty gap column
-     (grid-template-areas "brand . dots clock"), vertically centered against the full
-     3-line stack via top:50%/translateY. Below 1300px #header switches to a 2-row
-     "brand clock" / "dots dots" template with no gap column to sit in — reverted to
-     position:static there (see @media block) so it falls back into normal flow as a
-     4th stacked line, same quiet styling, nothing hidden. */
-  #brand-scope-note { position:absolute; left:100%; top:50%; transform:translateY(-50%); margin-left:18px; margin-top:0; white-space:nowrap; }
+     no new size/color. Previously placed via position:absolute in the header grid's gap
+     column (grid-template-areas "brand . dots clock") — that column is a 1fr track sized
+     AFTER the dots column's auto content width claims space first, so on the live site it
+     shrank to ~35px against ~137px of text and the note overlapped the status-dot row
+     (confirmed via live render, not just a smaller-viewport guess). Always renders as a
+     plain 4th stacked line under the tagline instead, in normal flow — it can't collide
+     with anything else in the header regardless of viewport or how wide the dots row is. */
+  #brand-scope-note { margin-top:2px; }
   #header .header-right { grid-area:dots; display:flex; gap:18px; align-items:center; font-size:11px; color:var(--text-dim); }
   #header .header-right span { display:flex; align-items:center; gap:4px; }
   #sys-time-wrap { grid-area:clock; }
@@ -569,13 +569,6 @@
   @media (max-width:1300px) {
     #header { grid-template-columns:1fr auto; grid-template-areas:"brand clock" "dots dots"; row-gap:8px; column-gap:18px; align-items:start; }
     #header .header-right { flex-wrap:wrap; gap:8px 18px; }
-    /* No gap column to sit beside at this width — fall back to normal flow as a 4th
-       stacked line under the brand block (same as the other .brand-tagline lines),
-       not display:none. This file already tried hiding brand content at a narrow
-       breakpoint once (see the #header-brand mobile comment below) and moved away from
-       it because portrait phones land under that width while landscape often doesn't,
-       so the content vanished for the more common case rather than the rarer one. */
-    #brand-scope-note { position:static; margin-left:0; margin-top:2px; }
   }
 
   /* -- MOBILE -- */
@@ -843,28 +836,30 @@
               fill="none" stroke="rgba(30,60,160,0.25)" stroke-width="5"/>
 
         <!-- ═══ HIGHWAYS — shadow layer ═══ -->
-        <!-- I-95 full spine: Baltimore → DC → Springfield → Fredericksburg -->
-        <polyline points="432.50,87.40 420.21,112.37 412.92,135.33 407.63,158.30 398.33,181.27 391.04,199.23 378.75,212.20 366.46,221.17 349.17,226.13 331.88,229.10 314.58,234.07 307.29,238.03 303.00,238.00 295.00,240.00 280.00,248.00 265.00,258.00 252.00,268.00 238.00,278.00 228.00,290.00 220.00,310.00 210.00,335.00 200.00,365.00 190.00,400.00 180.00,430.00 172.00,455.00 165.00,470.00" fill="none" stroke="#15103a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-495 DC Beltway (centered on DC at 303,255). Radius corrected to reflect the
-             real ~64mi Beltway circumference (~10.5mi x 9mi average radius) at this map's
-             verified core scale (5.68px/mi) - was previously drawn ~2.5x oversized, which
-             was the root cause of it visually touching I-695 (confirmed 0px gap before
-             this fix, via real-lat/lon-based geometric audit). -->
-        <ellipse cx="303" cy="255" rx="59.6" ry="51.1" fill="none" stroke="#15103a" stroke-width="9"/>
-        <!-- I-695 Baltimore Beltway (centered on Baltimore's corrected position). Radius
-             corrected to reflect the real ~32mi Beltway circumference (~5.5mi x 4.8mi
-             average radius) at the same verified scale - same oversizing issue as I-495. -->
-        <ellipse cx="427.5" cy="92.4" rx="31.2" ry="27.3" fill="none" stroke="#15103a" stroke-width="8"/>
-        <!-- I-270: DC → Rockville → Frederick (NW diagonal) -->
-        <polyline points="303.00,238.00 299.47,222.64 288.93,204.28 278.40,183.92 265.86,160.56 252.33,135.20 236.79,107.85 221.26,80.49 205.72,57.13 189.19,38.77" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-95 shadow — reconciled to the same real, canvas-truncated geometry as
+             seg-i95-n/seg-i95-s (was the old stylized spine, sitting up to ~12px off the
+             real line and reading as a separate parallel road). -->
+        <polyline points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#15103a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-495 shadow — reconciled to the same real arc geometry as seg-495-w (was a
+             stylized ellipse; converted to a polyline to carry the real, partial-arc
+             shape). -->
+        <polyline points="259.42,214.43 259.87,211.04 260.26,210.07 261.36,209.01 263.13,208.33 269.60,213.05 263.34,208.30 268.99,212.50 263.60,208.26 268.93,212.28 263.81,208.24 268.90,212.04 264.09,208.21 268.84,211.71 264.41,208.17 268.81,211.50 264.60,208.15 268.79,211.38 264.75,208.13 268.72,211.15 264.86,208.11 268.69,211.06 264.99,208.07 268.61,210.89 265.11,208.02 268.43,210.61 265.22,207.98 268.17,210.31 265.28,207.95 267.88,210.01 265.35,207.92 267.38,209.51 265.43,207.87 266.91,209.04 265.57,207.78 266.27,208.35 265.68,207.70 266.19,208.11 265.75,207.64 266.15,207.90 265.83,207.57 266.15,207.82 265.89,207.50 266.15,207.67 265.96,207.42 266.17,207.55 266.02,207.34 266.21,207.44 266.50,206.16 266.10,202.28 268.12,197.77 269.17,196.48 274.10,196.38 277.16,195.47 279.98,195.25 282.00,194.20 284.95,195.57 285.84,196.86 286.88,197.43 287.67,198.54 289.64,199.58 293.31,198.97 295.18,196.43 295.86,196.02 303.27,196.35 306.36,194.97 308.84,195.37 311.10,195.15 313.08,195.64 319.00,193.83 324.64,194.34 332.50,193.08" fill="none" stroke="#15103a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-695 shadow — reconciled to the same real, honest-open-arc geometry as
+             seg-695-e/seg-695-w (was a stylized closed ellipse; converted to a polyline —
+             the real corridor is NOT a closed loop, ~230.7° span only). -->
+        <polyline points="427.16,121.57 425.11,121.76 420.21,118.34 418.47,116.21 415.62,110.53 414.75,106.98 411.61,103.03 409.46,101.42 405.37,99.88 398.69,95.10 398.06,94.35 397.31,91.86 393.97,89.46 392.88,88.12 392.48,86.84 391.72,79.10 391.70,67.61 391.05,59.05 390.53,56.90 391.96,52.82 394.02,51.47 395.61,49.65 397.49,48.65 401.80,47.96 405.29,46.39 409.19,45.87 412.58,42.72 414.61,41.71 418.18,37.64 420.46,36.31 422.45,36.25 425.01,36.96 429.92,39.30 432.22,38.80 435.18,39.21 438.89,38.70 440.87,39.74 444.90,43.44 445.81,43.75 447.68,43.40 448.57,43.65 453.21,47.13 456.53,48.61 458.75,50.12 459.67,51.39 460.68,54.94 462.91,57.08 465.13,60.99 465.87,61.54 465.72,61.85 466.37,62.10 466.08,62.36 466.57,62.32 466.48,62.94 466.98,62.73 466.57,63.07 467.04,62.80 466.65,63.20 467.21,63.01 466.74,63.37 467.27,63.09 466.87,63.62 467.46,63.40 467.01,63.94 467.60,63.74 467.09,64.15 467.65,63.86 467.14,64.30 467.70,64.02 467.21,64.53 467.76,64.27 467.26,64.66 467.79,64.39 467.30,64.82 467.81,64.52 467.34,64.96 467.84,64.73 467.47,65.52 467.90,65.51" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-270 shadow — reconciled to the same real geometry as seg-i270-s/seg-i270-n. -->
+        <polyline points="185.22,44.73 190.51,52.36 195.12,63.79 197.68,67.73 202.25,72.93 206.32,74.79 208.01,79.15 210.96,82.04 211.60,83.95 213.05,85.73 213.57,87.76 214.99,89.92 215.97,92.42 218.57,94.87 219.34,97.13 223.33,104.13 227.32,109.88 228.67,112.86 230.73,119.62 234.30,124.04 235.98,127.91 238.76,132.06 240.65,135.76 241.70,137.07 244.75,139.27 247.78,142.41 248.76,144.06 250.70,148.88 254.49,154.83 258.92,160.39 259.93,162.65 262.04,169.63 263.11,171.42 265.24,173.70 266.20,175.25 267.82,181.40 270.26,187.33 271.92,188.69 279.80,190.51 280.98,191.48 282.79,194.07" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-66: DC → Tysons → Manassas → Front Royal (W) -->
         <polyline points="303.00,238.00 285.65,235.88 271.30,233.75 256.95,233.63 243.60,233.50 219.37,233.57 196.14,233.64 167.91,235.71 139.69,237.79 106.46,239.86 63.23,241.93 20.00,244.00" fill="none" stroke="#15103a" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-83: Baltimore → PA border (N) -->
-        <line x1="432.5" y1="24.4" x2="432.5" y2="87.4" stroke="#15103a" stroke-width="7" stroke-linecap="round"/>
-        <!-- US-50: DC → Annapolis → Bay Bridge (E) -->
-        <polyline points="303.00,238.00 324.49,224.57 348.97,217.14 373.46,213.71 397.94,211.29 422.43,209.86 446.91,209.43 469.40,210.00 501.40,210.00 536.40,210.00 576.40,212.00 601.40,217.00" fill="none" stroke="#15103a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-97: Baltimore Beltway → Annapolis -->
-        <polyline points="397.50,119.40 386.28,140.92 380.06,162.44 373.84,183.96 370.62,203.48 469.40,210.00" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-83 shadow — reconciled to the same real, canvas-truncated geometry as
+             seg-i83 (was a straight stylized <line>; converted to a <polyline> to carry
+             the real curve, cut at the same y=0 boundary). -->
+        <polyline points="433.77,87.18 432.51,85.83 432.19,81.40 431.06,81.06 427.94,78.67 426.96,77.30 425.68,74.22 423.37,72.88 422.98,71.26 421.26,68.42 421.57,63.95 420.51,61.46 420.21,57.22 419.15,54.36 417.34,52.49 415.24,46.72 415.36,45.89 416.38,44.21 416.76,42.96 416.68,41.19 416.19,39.82 418.05,37.75 420.02,36.47 421.44,36.19 423.28,36.57 425.09,31.96 425.33,30.57 424.72,26.51 424.15,25.18 418.16,20.39 417.18,19.11 416.52,17.45 414.84,5.47 415.03,3.87 416.15,0.00" fill="none" stroke="#15103a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- US-50 shadow — reconciled to the same real geometry as seg-us50. -->
+        <polyline points="332.15,233.72 334.28,233.30 338.45,234.29 341.47,233.25 343.30,231.97 345.21,229.23 349.25,225.70 350.25,224.09 351.04,223.67 364.82,222.26 371.59,222.53 378.08,223.64 386.90,222.65 392.42,219.95 397.79,219.70 401.14,219.00 413.02,218.59 425.53,215.38 431.13,211.06 436.39,207.75 443.93,207.31 450.34,208.12 456.10,206.59 462.51,203.09 467.07,196.67 477.47,190.57 478.92,190.11 486.03,190.97 493.17,193.37 494.38,194.53 497.78,201.23 499.41,202.53 526.44,210.49 528.13,210.68 531.27,210.10 536.68,210.58 542.66,211.65 556.94,215.53 564.13,212.32 565.62,210.87 567.47,208.25" fill="none" stroke="#15103a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-97 shadow — reconciled to the same real geometry as seg-i97. -->
+        <polyline points="445.05,207.23 443.96,206.97 443.38,206.55 442.23,204.10 441.32,203.06 438.36,201.68 436.11,199.33 433.64,198.20 432.91,197.58 432.55,196.72 431.51,191.58 431.55,190.86 432.17,189.21 432.41,188.08 432.41,186.87 432.06,185.52 431.07,183.95 428.91,182.05 426.51,178.97 424.22,177.00 423.78,176.13 423.79,175.23 424.12,174.51 426.22,172.72 427.25,171.33 428.39,168.49 428.59,167.50 428.53,166.66 426.87,159.59 424.77,154.70 422.98,149.41 422.63,147.28 422.11,140.32 422.32,138.65 423.72,134.67 425.91,130.10 426.07,128.89 425.98,126.04 426.30,122.05 426.48,121.43 426.83,120.93" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-295 / BW Pkwy: DC → Baltimore (parallel to I-95, east side) -->
         <polyline points="330.00,238.00 336.75,216.44 345.50,197.88 352.25,177.32 359.00,155.76 365.75,137.20 372.50,118.64 382.25,103.08 394.00,89.52 410.75,79.96 427.50,72.40" fill="none" stroke="#15103a" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-395: 14th St Bridge / Pentagon spur -->
@@ -2750,7 +2745,7 @@ function updateTrafficMap() {
       console.log('[TrafficMap] applied', hits, 'segments. seg-i95-n stroke attr:', testEl?.getAttribute('stroke'), 'style:', testEl?.style.stroke);
     }
     const tsEl = document.getElementById('trafficmap-ts');
-    if (tsEl) tsEl.textContent = `Updated ${ts()} · Modeled`;
+    if (tsEl) tsEl.textContent = `Updated ${ts()} · MDOT SHA CHART (MD)`;
     return hits;
   };
   // Try immediately, then via rAF, then after a short delay as fallback

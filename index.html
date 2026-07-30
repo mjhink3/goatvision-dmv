@@ -837,8 +837,10 @@
 
         <!-- ═══ HIGHWAYS — shadow layer ═══ -->
         <!-- I-95 shadow — reconciled to the same real, canvas-truncated geometry as
-             seg-i95-n/seg-i95-s (was the old stylized spine, sitting up to ~12px off the
-             real line and reading as a separate parallel road). -->
+             seg-i95-a/b1/b2/c/d (was the old stylized spine, sitting up to ~12px off the
+             real line and reading as a separate parallel road). One continuous shadow is
+             fine even though the colored line above it is now split into 5 chunks — this
+             layer is just a static backdrop, never colored by JS. -->
         <polyline points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#15103a" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 shadow — reconciled to the same real arc geometry as seg-495-w (was a
              stylized ellipse; converted to a polyline to carry the real, partial-arc
@@ -893,12 +895,22 @@
              within 0.01-2.37px of this line; none fall in the truncated (off-canvas)
              portion as of this integration, but the marker-plotting code still checks
              on-canvas bounds explicitly in case that changes. Expanding the canvas to
-             show the full northern extent is a separate future task. -->
-        <polyline id="seg-i95-n" points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-95 S — same real geometry as seg-i95-n above (this app tracks i95-n/i95-s
-             as separate directions per DMV_ROUTES; both now point at the same real
-             centerline, colored independently). -->
-        <polyline id="seg-i95-s" points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+             show the full northern extent is a separate future task.
+
+             UPDATE: split into 5 chunks (a/b1/b2/c/d) so sensor-based coloring (see
+             liveI95Sensors() in the JS below) can flag a localized backup without
+             stretching that one bad reading's speed across the entire 44-mile corridor —
+             a single 16mph reading near Meadowridge Rd, applied to the old single-line
+             56mi model, produced an absurd "211 min" figure. Each chunk below is just this
+             SAME 113-point real line sliced at real-world boundaries (chunk endpoints are
+             shared vertices, so there's no visual gap): PG County/I-495 split, Laurel,
+             BWI/I-895 split, downtown Baltimore, and north of the Fort McHenry Tunnel to
+             the canvas edge. No new geometry, no new data source. -->
+        <polyline id="seg-i95-a" points="300.13,282.64 305.55,282.78 307.65,282.46 310.12,281.59 315.91,277.86 319.12,277.36 316.00,278.01 310.42,281.70 308.49,282.56 305.61,282.97 300.10,282.85 305.77,282.90 308.39,282.46 310.66,281.46 316.19,277.92 324.32,276.51 326.97,274.65 330.71,273.12 334.01,273.07 337.57,272.24 344.05,273.10 348.75,271.40 350.20,270.49 353.22,267.66 357.31,259.97 359.90,256.90 361.84,253.02 362.09,251.94 361.98,247.22 360.02,240.37 360.24,236.85 358.96,231.06 358.30,225.33 355.18,217.50 353.68,211.39" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i95-b1" points="353.68,211.39 344.71,198.10 341.84,195.29 339.84,194.30 335.93,194.19 333.07,192.89 331.16,192.44 330.25,191.65 329.98,190.81 330.45,189.56 333.09,186.83 336.78,178.83 337.68,178.03 340.53,176.62 341.59,175.50 346.86,166.20 348.57,160.70 354.00,155.13 356.43,150.48 360.01,147.70" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i95-b2" points="360.01,147.70 363.88,141.20 368.78,138.90 380.69,129.89 384.46,125.04 386.27,123.22 396.11,116.80" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i95-c" points="396.11,116.80 399.54,113.71 401.94,109.64 403.01,108.44 404.35,107.57 406.97,106.88 411.38,103.52 412.12,102.64 413.10,99.78 414.10,97.94 418.90,95.05 419.94,94.84 423.83,95.28 428.71,96.44 435.20,96.56" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+        <polyline id="seg-i95-d" points="435.20,96.56 438.05,97.26 441.93,98.96 444.62,98.35 446.87,97.13 450.08,93.58 450.69,91.08 451.31,90.04 452.39,89.59 454.93,89.61 455.77,88.96 456.65,84.90 456.84,82.71 455.89,76.27 460.58,69.89 462.17,66.68 464.31,65.07 467.30,63.52 479.26,54.84 484.45,48.51 487.24,44.59 492.21,39.66 494.03,36.61 498.46,33.86 505.10,27.83 506.56,27.37 512.72,27.34 514.09,26.97 518.74,24.55 524.68,20.59 531.76,16.89 533.31,15.83 535.56,13.42 538.78,11.42 542.96,9.47 544.99,7.25 547.43,5.33 548.58,3.76 552.31,1.59 553.61,0.00" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-495 Northern Arc (MD) — REAL centerline geometry, not a stylized ellipse.
              Source: mdgeodata.md.gov MD_RoadCenterlines/MapServer/0 (Interstates),
              ID_RTE_NO=495, ID_PREFIX='IS' (mainline only, ramps excluded), CARDINALITY=1
@@ -2386,8 +2398,13 @@ function dirArrowSVG(letter, size, color, x, y) {
 const DMV_ROUTES = [
   { id:'i495-n',  road:'I-495', dir:'N', name:'Beltway — Northern Arc (MD)',              avgMin:4 },
   { id:'i495-s',  road:'I-495', dir:'S', name:'Beltway — I-270 Spur to Wilson Br (MD)',    avgMin:42 },
-  { id:'i95-n',   road:'I-95',  dir:'N', name:'Springfield → DC → Baltimore',              avgMin:38 },
-  { id:'i95-s',   road:'I-95',  dir:'S', name:'Baltimore → DC → Fredksbg',                 avgMin:55 },
+  // I-95 split into 5 chunks (see liveI95Sensors()/I95_CHUNKS below) so a localized
+  // sensor backup colors/slows only its own real stretch, not the full 44-mile corridor.
+  { id:'i95-a',   road:'I-95',  dir:'A',  name:'PG County (I-495 split to Landover/Annapolis Rd)', avgMin:12 },
+  { id:'i95-b1',  road:'I-95',  dir:'B1', name:'Laurel/Beltsville to Ft. Meade/Jessup',             avgMin:6 },
+  { id:'i95-b2',  road:'I-95',  dir:'B2', name:'BWI to I-895 (Harbor Tunnel Thruway) split',        avgMin:4 },
+  { id:'i95-c',   road:'I-95',  dir:'C',  name:'Through Downtown Baltimore (Key Hwy/BW Pkwy)',      avgMin:6 },
+  { id:'i95-d',   road:'I-95',  dir:'D',  name:'North of Ft. McHenry Tunnel to canvas edge',        avgMin:13 },
   { id:'i66-e',   road:'I-66',  dir:'E', name:'Fairfax to DC',                             avgMin:20 },
   { id:'i66-w',   road:'I-66',  dir:'W', name:'DC to Fairfax',                             avgMin:20 },
   { id:'i270-s',  road:'I-270', dir:'S', name:'Frederick to Beltway',                      avgMin:40 },
@@ -2408,14 +2425,15 @@ const DMV_ROUTES = [
 // Only routes with a clean, unambiguous single-corridor match in CHART's live data go
 // live. Checked route-by-route against CHART's actual 86 named segments before deciding:
 //  - i495-s, i66-e, i66-w: Virginia-side, CHART is Maryland-only — no live source exists.
-//  - i95-n, i95-s: DMV's route describes the full Springfield-DC-Baltimore corridor, but
-//    CHART only has the Maryland portion — substituting a partial segment under a label
-//    that promises the full corridor would misrepresent scope.
 //  - i495-n/s, i695-e/w: CHART only labels these Inner Loop/Outer Loop, not a compass
 //    direction — handled separately below via BELTWAY_LOOP_MAP + liveBeltwayWorseOfTwo(),
 //    not this map (which requires one exact single-direction name match).
 //  - i97: no CHART travel-time segment for this corridor at all — colored from its own
 //    live TSS speed sensors instead, via liveI97Sensors() below, not this map.
+//  - i95-a/b1/b2/c/d: CHART's travel-time feed only covers the full Springfield-DC-
+//    Baltimore corridor as one label, which would misrepresent scope for these 5 real
+//    sub-stretches — colored from I-95's own TSS speed sensors instead, chunk by chunk,
+//    via liveI95Sensors()/I95_CHUNKS below, not this map.
 // The 5 below have a genuine single-direction, single-corridor match.
 //
 // These are exact-string matches against CHART's own segment names, which CHART can and
@@ -2452,6 +2470,7 @@ async function fetchMDTravelTimes() {
 function liveMDSegment(dmvRouteId) {
   if (BELTWAY_LOOP_MAP[dmvRouteId]) return liveBeltwayWorseOfTwo(dmvRouteId);
   if (dmvRouteId === 'i97') return liveI97Sensors();
+  if (I95_CHUNKS[dmvRouteId]) return liveI95Sensors(dmvRouteId);
   const names = CHART_ROUTE_MAP[dmvRouteId];
   if (!names || !_mdTravelTimes) return null;
   const segs = _mdTravelTimes.filter(r => names.includes(r.name));
@@ -2557,6 +2576,63 @@ function liveI97Sensors() {
   return { currentMin, avgMin, source: 'sensors', sensorCount: stations.size };
 }
 
+// I-95 — 58+ real TSS speed sensors sit on this corridor, way more than I-97's 5, but the
+// SAME "worst sensor vs. reference speed, applied over the whole corridor's real length"
+// formula that worked for I-97 broke down here: a single genuine 16mph backup near
+// Meadowridge Rd, extrapolated over I-95's full real 44-mile drawn extent, produced a
+// "211 min" figure — mathematically consistent but absurd (nobody's I-95 drive is 3.5
+// hours because of one backed-up interchange). Fix: split the corridor into 5 real
+// chunks (same drawn line, just sliced at real interchange/landmark boundaries — see the
+// SVG markup above) so a localized backup only stretches across ITS OWN chunk's length,
+// not the whole corridor. Each chunk is otherwise identical to I-97's approach: worst
+// station (own worse direction-reading) vs. a real posted-limit reference, 2+ stations
+// required, quiet modeled fallback below that.
+//
+// Chunk boundaries were chosen from the sensors' own real lat/lon, not guessed: sorting
+// all "I-95"-described sensors by latitude reveals clear real-world gaps (a ~5mi gap
+// before Laurel, and a genuine ~8.5mi sensor-free stretch through the Fort McHenry
+// Tunnel/downtown Baltimore harbor crossing, confirmed by CHART's own mile markers,
+// MM 51.8 to MM 60.3, with nothing in between). Reference speed is 65mph everywhere
+// except chunk C (downtown Baltimore/tunnel approach), which MD posts at 55mph — same
+// "no fetchable speed-limit field, use the real known posted limit" approach as I-97,
+// just applied per-chunk since this corridor's real character actually varies chunk to
+// chunk (unlike I-97's short, uniform stretch).
+const I95_CHUNKS = {
+  'i95-a':  { lineId: 'seg-i95-a',  latMax: 38.98,    lengthMi: 12.8, refMph: 65 },
+  'i95-b1': { lineId: 'seg-i95-b1', latMax: 39.15,    lengthMi: 6.8,  refMph: 65 },
+  'i95-b2': { lineId: 'seg-i95-b2', latMax: 39.235,   lengthMi: 4.5,  refMph: 65 },
+  'i95-c':  { lineId: 'seg-i95-c',  latMax: 39.30,    lengthMi: 5.9,  refMph: 55 },
+  'i95-d':  { lineId: 'seg-i95-d',  latMax: Infinity, lengthMi: 14.2, refMph: 65 },
+};
+const I95_CHUNK_ORDER = ['i95-a', 'i95-b1', 'i95-b2', 'i95-c', 'i95-d'];
+function i95ChunkForLat(lat) {
+  for (const key of I95_CHUNK_ORDER) if (lat < I95_CHUNKS[key].latMax) return key;
+  return 'i95-d';
+}
+function liveI95Sensors(chunkId) {
+  if (!_mdTssSensors) return null;
+  const cfg = I95_CHUNKS[chunkId];
+  const line = REAL_ROAD_LINES.find(l => l.id === cfg.lineId);
+  if (!line || !line.points.length) return null;
+  const stations = new Map();
+  for (const r of _mdTssSensors) {
+    if (r.lat == null || r.lon == null || r.speed_mph == null) continue;
+    if (!/^I-?95\b/i.test((r.description || '').trim())) continue; // must genuinely be an I-95-named sensor
+    if (i95ChunkForLat(r.lat) !== chunkId) continue; // must fall in THIS chunk's real stretch
+    const p = projectLatLonToSvg(r.lat, r.lon);
+    let dist = Infinity;
+    for (let i = 1; i < line.points.length; i++) dist = Math.min(dist, distPointToSegment(p, line.points[i-1], line.points[i]));
+    if (dist > MAP_MARKER_MAX_DIST_PX) continue; // must actually sit on this chunk's own drawn line
+    const prevWorst = stations.get(r.sensor_id);
+    if (prevWorst === undefined || r.speed_mph < prevWorst) stations.set(r.sensor_id, r.speed_mph);
+  }
+  if (stations.size < 2) return null; // require 2+ healthy stations in THIS chunk — same all-or-nothing honesty as elsewhere
+  const worstMph = Math.min(...stations.values());
+  const currentMin = Math.round((cfg.lengthMi / worstMph) * 60);
+  const avgMin = Math.round((cfg.lengthMi / cfg.refMph) * 60);
+  return { currentMin, avgMin, source: 'sensors', sensorCount: stations.size };
+}
+
 // ╔══════════════════════════════════════════════════════════╗
 //  MARYLAND CHART — LIVE SPEED SENSORS (Transportation Sensor Systems / "TSS")
 //  chart.maryland.gov/DataFeeds/GetTssXml, ingested server-side via api/cron-md-tss.js
@@ -2659,9 +2735,11 @@ function projectLatLonToSvg(lat, lon) {
 // chaining self-intersected on this fragmented arc) and joined to MD's seg-495-w via a
 // Census TIGER Wilson Bridge connector, closing the ring. Remaining modeled: I-66 and
 // VA-267, still not built. One representative seg-* id per corridor is read here (where a
-// corridor has two DOM elements for two DMV_ROUTES directions, e.g. seg-i95-n/seg-i95-s,
-// both now point at the identical real geometry, so reading either one is sufficient).
-const REAL_ROAD_SEG_IDS = ['seg-495-w', 'seg-495-e', 'seg-i95-n', 'seg-i270-s', 'seg-us50', 'seg-695-e', 'seg-i83', 'seg-i97', 'seg-i295'];
+// corridor has two DOM elements for two DMV_ROUTES directions, both pointing at the
+// identical real geometry, reading either one is sufficient) — EXCEPT I-95, which is now
+// 5 separate real DOM elements (seg-i95-a/b1/b2/c/d, one real line sliced into chunks),
+// all 5 listed here since liveI95Sensors() needs each chunk's own piece individually.
+const REAL_ROAD_SEG_IDS = ['seg-495-w', 'seg-495-e', 'seg-i95-a', 'seg-i95-b1', 'seg-i95-b2', 'seg-i95-c', 'seg-i95-d', 'seg-i270-s', 'seg-us50', 'seg-695-e', 'seg-i83', 'seg-i97', 'seg-i295'];
 const REAL_ROAD_LINES = REAL_ROAD_SEG_IDS.map(id => {
   const el = document.getElementById(id);
   if (!el) return { id, points: [] };
@@ -2893,10 +2971,14 @@ function updateTrafficMap() {
 
     return ratio <= 1.15 ? '#3dd62a' : ratio <= 1.65 ? '#f0a500' : '#dc2626';
   }
-  // [svgId, road, dir or null] — dir matches route .dir field (N/S/E/W)
+  // [svgId, road, dir or null] — dir matches route .dir field (N/S/E/W, or a chunk
+  // letter for I-95's 5 sensor-colored chunks below)
   const segs = [
-    ['seg-i95-n',  'I-95',  'N'],
-    ['seg-i95-s',  'I-95',  'S'],
+    ['seg-i95-a',  'I-95',  'A'],
+    ['seg-i95-b1', 'I-95',  'B1'],
+    ['seg-i95-b2', 'I-95',  'B2'],
+    ['seg-i95-c',  'I-95',  'C'],
+    ['seg-i95-d',  'I-95',  'D'],
     ['seg-495-w',  'I-495', 'N'],  // northern arc (outer ring)
     ['seg-495-e',  'I-495', 'S'],  // southern arc (inner ring)
     ['seg-695-e',  'I-695', 'E'],  // outer ring — real data, was dropped when this was one "proxy" line
@@ -2927,8 +3009,8 @@ function updateTrafficMap() {
     }
     if (hits > 0) {
       // Verify first segment actually changed
-      const testEl = document.getElementById('seg-i95-n');
-      console.log('[TrafficMap] applied', hits, 'segments. seg-i95-n stroke attr:', testEl?.getAttribute('stroke'), 'style:', testEl?.style.stroke);
+      const testEl = document.getElementById('seg-i95-a');
+      console.log('[TrafficMap] applied', hits, 'segments. seg-i95-a stroke attr:', testEl?.getAttribute('stroke'), 'style:', testEl?.style.stroke);
     }
     const tsEl = document.getElementById('trafficmap-ts');
     if (tsEl) tsEl.textContent = `Updated ${ts()} · MDOT SHA CHART (MD)`;

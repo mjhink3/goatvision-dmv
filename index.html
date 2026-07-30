@@ -2384,8 +2384,8 @@ function dirArrowSVG(letter, size, color, x, y) {
 //  Honest time-of-day + weather model. Labels as EST.
 // ╚══════════════════════════════════════════════════════════╝
 const DMV_ROUTES = [
-  { id:'i495-n',  road:'I-495', dir:'N', name:'Beltway — Northern Arc (MD)',              avgMin:28 },
-  { id:'i495-s',  road:'I-495', dir:'S', name:'Beltway — Southern Arc (VA)',               avgMin:26 },
+  { id:'i495-n',  road:'I-495', dir:'N', name:'Beltway — Northern Arc (MD)',              avgMin:4 },
+  { id:'i495-s',  road:'I-495', dir:'S', name:'Beltway — I-270 Spur to Wilson Br (MD)',    avgMin:42 },
   { id:'i95-n',   road:'I-95',  dir:'N', name:'Springfield → DC → Baltimore',              avgMin:38 },
   { id:'i95-s',   road:'I-95',  dir:'S', name:'Baltimore → DC → Fredksbg',                 avgMin:55 },
   { id:'i66-e',   road:'I-66',  dir:'E', name:'Fairfax to DC',                             avgMin:20 },
@@ -2448,6 +2448,7 @@ async function fetchMDTravelTimes() {
 // Requires every expected segment to be present in the live payload — a partial match
 // would silently understate the corridor, so it falls back to the model instead.
 function liveMDSegment(dmvRouteId) {
+  if (BELTWAY_LOOP_MAP[dmvRouteId]) return liveBeltwayWorseOfTwo(dmvRouteId);
   const names = CHART_ROUTE_MAP[dmvRouteId];
   if (!names || !_mdTravelTimes) return null;
   const segs = _mdTravelTimes.filter(r => names.includes(r.name));
@@ -2456,6 +2457,49 @@ function liveMDSegment(dmvRouteId) {
   const totalTimeSecs = segs.reduce((s, r) => s + (r.travelTimeSecs || 0), 0);
   if (!totalLength || !totalTimeSecs) return null;
   return { currentMin: Math.round(totalTimeSecs / 60) };
+}
+
+// The Beltway (I-495) is a genuine ring — seg-495-w/seg-495-e trace two ADJACENT arcs of
+// one continuous loop (chained together to close it), not two opposite directions of the
+// same stretch. CHART's real data, though, is split by direction of travel (Inner/Outer
+// Loop), not by arc — every segment below is confirmed live-tagged state:MD (Montgomery/
+// Prince George's counties only; VA's own portion beyond the Wilson Bridge has no CHART
+// coverage at all, unchanged from before). seg-495-w's real geometry is Montgomery County
+// only; seg-495-e's real geometry continues through Prince George's County to the bridge —
+// matched against each CHART segment's own county tag, not guessed from exit-number lore.
+// Colors from the WORSE of the two directions' own congestion ratios (actual time ÷ that
+// direction's own 55mph free-flow baseline, computed from real segment mileage, not a
+// static guess) — comparing RATIOS, not raw times or speeds, so a real slowdown in either
+// direction surfaces instead of being hidden by averaging with the other direction.
+const BELTWAY_LOOP_MAP = {
+  'i495-n': {
+    inner: ['I-495 Inner Loop, American Legion Br to I-270 Spur to EX 38'],
+    outer: ['I-495 Outer Loop, I-270 Spur to American Legion Br'],
+  },
+  'i495-s': {
+    inner: ['I-495 Inner Loop, I-270 Spur EX 38 to I-95 EX 27', 'I-95/I-495 Inner Loop, I-95 to US 50', 'I-95/I-495 Inner Loop, US 50 to Woodrow Wilson Br'],
+    outer: ['I-495 Outer Loop, I-95/I-495 to I-270 Spur', 'I-95/I-495 Outer Loop, US 50 to I-95/I-495 Split', 'I-95/I-495 Outer Loop, Woodrow Wilson Br to US 50'],
+  },
+};
+const BELTWAY_REF_MPH = 55; // matches CHART's own posted/reported free-flow speed for these segments
+function liveBeltwayDirection(names) {
+  if (!_mdTravelTimes) return null;
+  const segs = _mdTravelTimes.filter(r => names.includes(r.name));
+  if (segs.length !== names.length) return null;
+  const totalLength = segs.reduce((s, r) => s + (r.length || 0), 0);
+  const totalTimeSecs = segs.reduce((s, r) => s + (r.travelTimeSecs || 0), 0);
+  if (!totalLength || !totalTimeSecs) return null;
+  const currentMin = totalTimeSecs / 60;
+  const baselineMin = (totalLength / BELTWAY_REF_MPH) * 60;
+  return { currentMin, baselineMin, ratio: currentMin / baselineMin };
+}
+function liveBeltwayWorseOfTwo(dmvRouteId) {
+  const { inner, outer } = BELTWAY_LOOP_MAP[dmvRouteId];
+  const innerR = liveBeltwayDirection(inner);
+  const outerR = liveBeltwayDirection(outer);
+  if (!innerR || !outerR) return null; // require both directions present — same all-or-nothing honesty as elsewhere
+  const worse = innerR.ratio >= outerR.ratio ? innerR : outerR;
+  return { currentMin: Math.round(worse.currentMin), avgMin: Math.round(worse.baselineMin) };
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -2663,7 +2707,12 @@ function buildTravelTimes() {
   return DMV_ROUTES.map(r=>{
     const live = liveMDSegment(r.id);
     const cur = live ? live.currentMin : Math.round(r.avgMin*mult*wxFactor);
-    return { ...r, CurrentTime:cur, AverageTime:r.avgMin, _road:r.road, _dir:r.dir, _live: !!live };
+    // Beltway's worse-of-two returns its own honest avgMin (that direction's real 55mph
+    // baseline) alongside currentMin, so the ratio compares like-for-like; every other
+    // route's liveMDSegment() still returns only {currentMin}, so live?.avgMin is
+    // undefined there and this falls back to the static r.avgMin exactly as before.
+    const avg = live?.avgMin ?? r.avgMin;
+    return { ...r, CurrentTime:cur, AverageTime:avg, _road:r.road, _dir:r.dir, _live: !!live };
   });
 }
 async function renderTravelTimes() {

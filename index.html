@@ -844,6 +844,10 @@
              stylized ellipse; converted to a polyline to carry the real, partial-arc
              shape). -->
         <polyline points="259.42,214.43 259.87,211.04 260.26,210.07 261.36,209.01 263.13,208.33 269.60,213.05 263.34,208.30 268.99,212.50 263.60,208.26 268.93,212.28 263.81,208.24 268.90,212.04 264.09,208.21 268.84,211.71 264.41,208.17 268.81,211.50 264.60,208.15 268.79,211.38 264.75,208.13 268.72,211.15 264.86,208.11 268.69,211.06 264.99,208.07 268.61,210.89 265.11,208.02 268.43,210.61 265.22,207.98 268.17,210.31 265.28,207.95 267.88,210.01 265.35,207.92 267.38,209.51 265.43,207.87 266.91,209.04 265.57,207.78 266.27,208.35 265.68,207.70 266.19,208.11 265.75,207.64 266.15,207.90 265.83,207.57 266.15,207.82 265.89,207.50 266.15,207.67 265.96,207.42 266.17,207.55 266.02,207.34 266.21,207.44 266.50,206.16 266.10,202.28 268.12,197.77 269.17,196.48 274.10,196.38 277.16,195.47 279.98,195.25 282.00,194.20 284.95,195.57 285.84,196.86 286.88,197.43 287.67,198.54 289.64,199.58 293.31,198.97 295.18,196.43 295.86,196.02 303.27,196.35 306.36,194.97 308.84,195.37 311.10,195.15 313.08,195.64 319.00,193.83 324.64,194.34 332.50,193.08" fill="none" stroke="#15103a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+        <!-- I-495 E shadow (VA side) — NEW, this element previously had no shadow at all
+             (the old stylized ellipse drew with no shadow beneath it). Reconciled to match
+             the same real geometry as the new seg-495-e. -->
+        <polyline points="332.64,192.74 335.85,194.16 339.70,194.28 341.77,195.23 344.66,198.03 353.69,211.40 355.22,217.62 358.28,225.22 358.99,231.20 360.23,236.85 360.04,240.51 361.98,247.17 362.09,251.92 361.86,252.98 359.95,256.83 357.27,260.03 353.39,267.40 349.62,270.92 345.23,272.88 343.03,273.11 337.51,272.24 334.10,273.07 330.85,273.08 327.06,274.60 324.29,276.52 316.18,277.93 310.02,281.94 307.80,282.75 306.18,282.95 302.65,283.05 298.22,282.40 294.96,281.58 291.41,280.00 282.98,278.81 281.05,279.03 275.01,281.01 267.15,282.59 263.05,283.90 261.77,283.98 260.06,283.49 256.05,281.54 250.41,279.73 249.44,278.79 246.84,274.38 246.21,272.16 246.31,270.92 247.36,268.06 247.55,266.55 246.93,262.19 246.89,250.28 246.21,246.75 247.88,244.01 248.57,241.69 247.69,237.38 247.77,234.00 249.14,228.23 250.46,226.85 252.32,222.93 254.75,219.81 255.89,217.24 258.70,215.53 259.40,213.95" fill="none" stroke="#15103a" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-695 shadow — reconciled to the same real, honest-open-arc geometry as
              seg-695-e/seg-695-w (was a stylized closed ellipse; converted to a polyline —
              the real corridor is NOT a closed loop, ~230.7° span only). -->
@@ -906,10 +910,47 @@
              Baltimore. Confirmed live: real TSS sensors at this corridor project to
              within 0.5px of this line (was up to 72% off the old ellipse at one point).
              MD only spans ~95° of bearing from DC (this is an arc, not a full loop) —
-             the VA side (seg-495-e below) is untouched, no live speed data exists there. -->
+             the VA side (seg-495-e below) is now ALSO real, closing this into one full
+             ring; this MD arc's own geometry is untouched by that work. -->
         <polyline id="seg-495-w" points="259.42,214.43 259.87,211.04 260.26,210.07 261.36,209.01 263.13,208.33 269.60,213.05 263.34,208.30 268.99,212.50 263.60,208.26 268.93,212.28 263.81,208.24 268.90,212.04 264.09,208.21 268.84,211.71 264.41,208.17 268.81,211.50 264.60,208.15 268.79,211.38 264.75,208.13 268.72,211.15 264.86,208.11 268.69,211.06 264.99,208.07 268.61,210.89 265.11,208.02 268.43,210.61 265.22,207.98 268.17,210.31 265.28,207.95 267.88,210.01 265.35,207.92 267.38,209.51 265.43,207.87 266.91,209.04 265.57,207.78 266.27,208.35 265.68,207.70 266.19,208.11 265.75,207.64 266.15,207.90 265.83,207.57 266.15,207.82 265.89,207.50 266.15,207.67 265.96,207.42 266.17,207.55 266.02,207.34 266.21,207.44 266.50,206.16 266.10,202.28 268.12,197.77 269.17,196.48 274.10,196.38 277.16,195.47 279.98,195.25 282.00,194.20 284.95,195.57 285.84,196.86 286.88,197.43 287.67,198.54 289.64,199.58 293.31,198.97 295.18,196.43 295.86,196.02 303.27,196.35 306.36,194.97 308.84,195.37 311.10,195.15 313.08,195.64 319.00,193.83 324.64,194.34 332.50,193.08" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-        <!-- I-495 E arc — inner concentric ring -->
-        <ellipse id="seg-495-e" cx="303" cy="255" rx="57.1" ry="48.6" fill="none" stroke="#3a1c38" stroke-width="5"/>
+        <!-- I-495 E arc (VA side) — REAL centerline, closing the Beltway into one full ring.
+             Source: VA VBMP Road Centerlines (vginmaps.vdem.virginia.gov, VA_Base_Layers/
+             VBMP_RCL/FeatureServer/1), VDOT_RNUM=495 mainline (SB carriageway only, exact
+             VDOT_RNAM match — excludes NBX/SBX express lanes and RMP ramp stubs, same
+             "mainline only" principle as I-270's LOCAL LANES exclusion) plus the I-95/I-495
+             concurrency mainline near Springfield/the Wilson Bridge (VDOT_RNUM=95 rows whose
+             ST_NAME mentions 495). 200 of 369 raw features survive that mainline filter.
+             Chaining note: segment-level endpoint chaining (the method used for every other
+             corridor) produced 43-50 self-intersections here even at tight gap thresholds —
+             this arc's own fragmentation (many short ramp-adjacent pieces near Tysons/
+             Springfield) confused greedy nearest-endpoint matching. Switched to bearing-sort
+             from DC (the same technique already proven for I-695's loop around Baltimore,
+             since this too is genuinely part of a ring around a central point): sorting all
+             533 raw points by bearing from DC, not by segment endpoints, gives a clean
+             204.3°-298.9° arc (94.6° span) with ZERO self-intersections.
+             The Wilson Bridge gap: VA's own data (like MD's) doesn't reach the actual river
+             crossing — confirmed via Census TIGER/Line (tigerweb.geo.census.gov, NAME='I- 95',
+             the bridge carries I-95/I-495 concurrently in real life). Two TIGER features share
+             an exact vertex (bit-for-bit identical coordinates) — a 66-point VA-side piece and
+             a 631-point MD-side piece — bridging the gap. That MD-side piece's own raw trace
+             loops back past MD's endpoint before diverging (both datasets independently cover
+             the same real interchange); trimmed to its true closest approach (0.37px from
+             seg-495-w's own endpoint) rather than including the redundant loop, which also
+             eliminated a self-intersection the untrimmed version produced.
+             Net result: VA arc + bridge join MD's UNCHANGED seg-495-w at both ends (0.37px
+             and ~0.5px) with zero self-intersections across the full assembled ring, verified
+             both by segment-crossing math and by rendering. 1,094 combined raw points ->
+             simplified to 62 (Douglas-Peucker) for this element; seg-495-w's own 72 points
+             are untouched.
+             Coloring: confirmed against the live CHART feed that NEITHER side of the Beltway
+             gets live data today — CHART_ROUTE_MAP has no i495-n/i495-s entry, and CHART
+             labels this corridor "Inner Loop"/"Outer Loop" rather than compass directions
+             (live Inner/Outer Loop data does exist in CHART's feed, just not wired to this
+             DMV route id — a real, logged future opportunity, not part of this build). Both
+             seg-495-w and seg-495-e already fall back to the identical modeled heuristic via
+             segColor() — this build doesn't change that; VA was never at risk of fake-live
+             coloring because MD's own side isn't live either. -->
+        <polyline id="seg-495-e" points="332.64,192.74 335.85,194.16 339.70,194.28 341.77,195.23 344.66,198.03 353.69,211.40 355.22,217.62 358.28,225.22 358.99,231.20 360.23,236.85 360.04,240.51 361.98,247.17 362.09,251.92 361.86,252.98 359.95,256.83 357.27,260.03 353.39,267.40 349.62,270.92 345.23,272.88 343.03,273.11 337.51,272.24 334.10,273.07 330.85,273.08 327.06,274.60 324.29,276.52 316.18,277.93 310.02,281.94 307.80,282.75 306.18,282.95 302.65,283.05 298.22,282.40 294.96,281.58 291.41,280.00 282.98,278.81 281.05,279.03 275.01,281.01 267.15,282.59 263.05,283.90 261.77,283.98 260.06,283.49 256.05,281.54 250.41,279.73 249.44,278.79 246.84,274.38 246.21,272.16 246.31,270.92 247.36,268.06 247.55,266.55 246.93,262.19 246.89,250.28 246.21,246.75 247.88,244.01 248.57,241.69 247.69,237.38 247.77,234.00 249.14,228.23 250.46,226.85 252.32,222.93 254.75,219.81 255.89,217.24 258.70,215.53 259.40,213.95" fill="none" stroke="#3a1c38" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
         <!-- I-695 Baltimore Beltway — REAL centerline, NOT the full closed loop. Source:
              mdgeodata.md.gov MD_RoadCenterlines/MapServer/0, ID_RTE_NO=695, ID_PREFIX='IS',
              both cardinalities (coverage of the ring splits unevenly between them).
@@ -1085,15 +1126,18 @@
         <!-- Beltway labels — repositioned to match I-495/I-695's corrected (much smaller,
              correctly-scaled) ellipse geometry; the old positions were tuned to the
              previous oversized ellipses and ended up 70-75px from the new boundaries. -->
-        <text x="355" y="295" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
+        <text x="340" y="285" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
         <text x="258" y="207" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-495</text>
         <text x="450" y="105" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
         <text x="405" y="98" font-family="monospace" font-size="7" fill="#c9a84c" font-weight="600">I-695</text>
 
         <!-- MD TSS speed-sensor markers — populated live by renderMDTssMapMarkers().
-             All 8 real corridors (I-495, I-95, I-270, US-50, I-695, I-83, I-97, I-295)
-             plot live sensor dots; VA-267/I-66/VA-side I-495 remain modeled with no
-             point markers until their own real geometry is built. -->
+             All 8 MD-side real corridors (I-495 MD, I-95, I-270, US-50, I-695, I-83, I-97,
+             I-295) plot live sensor dots from Maryland's TSS feed. The Beltway's VA side
+             (seg-495-e) is also real geometry now (in REAL_ROAD_LINES for the marker
+             distance check) but gets no dots of its own — Virginia has no equivalent live
+             speed-sensor feed at all, not a "geometry not built yet" gap. I-66/VA-267
+             remain both modeled AND markerless, still not built. -->
         <g id="md-tss-markers"></g>
       </svg>
       <div class="tm-legend">
@@ -2504,15 +2548,15 @@ function projectLatLonToSvg(lat, lon) {
 }
 
 // Real road geometry now exists for all 8 MD-side corridors, including I-295/MD-295/
-// Baltimore-Washington Pkwy — earlier thought blocked (the Parkway's federal/NPS-owned
-// southern stretch is absent from MDOT's Interstates/US-Routes layers), but MDOT's own
-// "Maryland Routes" layer (ID_PREFIX='MD') carries it end to end as state route 295,
-// same source/pipeline as the rest. Remaining modeled: the VA-side corridors (I-66,
-// VA-267, I-495 VA/seg-495-e), a separate state's data source, not yet built. One
-// representative seg-* id per corridor is read here (where a corridor has two DOM
-// elements for two DMV_ROUTES directions, e.g. seg-i95-n/seg-i95-s, both now point at
-// the identical real geometry, so reading either one is sufficient).
-const REAL_ROAD_SEG_IDS = ['seg-495-w', 'seg-i95-n', 'seg-i270-s', 'seg-us50', 'seg-695-e', 'seg-i83', 'seg-i97', 'seg-i295'];
+// Baltimore-Washington Pkwy (MDOT's own "Maryland Routes" layer, ID_PREFIX='MD', carries
+// it end to end as state route 295 — no federal/DC stitching needed after all), PLUS the
+// VA side of the Beltway (seg-495-e) — VA VBMP data bearing-sorted from DC (segment-level
+// chaining self-intersected on this fragmented arc) and joined to MD's seg-495-w via a
+// Census TIGER Wilson Bridge connector, closing the ring. Remaining modeled: I-66 and
+// VA-267, still not built. One representative seg-* id per corridor is read here (where a
+// corridor has two DOM elements for two DMV_ROUTES directions, e.g. seg-i95-n/seg-i95-s,
+// both now point at the identical real geometry, so reading either one is sufficient).
+const REAL_ROAD_SEG_IDS = ['seg-495-w', 'seg-495-e', 'seg-i95-n', 'seg-i270-s', 'seg-us50', 'seg-695-e', 'seg-i83', 'seg-i97', 'seg-i295'];
 const REAL_ROAD_LINES = REAL_ROAD_SEG_IDS.map(id => {
   const el = document.getElementById(id);
   if (!el) return { id, points: [] };

@@ -2394,6 +2394,7 @@ const DMV_ROUTES = [
   { id:'i270-n',  road:'I-270', dir:'N', name:'Beltway to Frederick',                      avgMin:40 },
   { id:'us50-e',  road:'US-50', dir:'E', name:'DC to Annapolis / Bay Bridge',              avgMin:35 },
   { id:'i295-s',  road:'I-295', dir:'S', name:'I-295 / BW Pkwy (DC to Baltimore)',        avgMin:42 },
+  { id:'i97',     road:'I-97',  dir:'S', name:'Baltimore to Annapolis',                    avgMin:6 },
   { id:'i695-e',  road:'I-695', dir:'E', name:'Baltimore Beltway',                         avgMin:22 },
   { id:'i695-w',  road:'I-695', dir:'W', name:'Baltimore Beltway',                         avgMin:22 },
   { id:'i83-s',   road:'I-83',  dir:'S', name:'I-83 / JFX (PA line to Baltimore)',         avgMin:25 },
@@ -2410,10 +2411,11 @@ const DMV_ROUTES = [
 //  - i95-n, i95-s: DMV's route describes the full Springfield-DC-Baltimore corridor, but
 //    CHART only has the Maryland portion — substituting a partial segment under a label
 //    that promises the full corridor would misrepresent scope.
-//  - i495-n, i695-e, i695-w: CHART only labels these Inner Loop/Outer Loop (confirmed:
-//    clockwise/counterclockwise respectively). Northern Arc and full Beltway loops don't
-//    have a real fixed compass direction to map that onto — same category of mismatch as
-//    i95, not a resolved fact, so left modeled rather than guessed.
+//  - i495-n/s, i695-e/w: CHART only labels these Inner Loop/Outer Loop, not a compass
+//    direction — handled separately below via BELTWAY_LOOP_MAP + liveBeltwayWorseOfTwo(),
+//    not this map (which requires one exact single-direction name match).
+//  - i97: no CHART travel-time segment for this corridor at all — colored from its own
+//    live TSS speed sensors instead, via liveI97Sensors() below, not this map.
 // The 5 below have a genuine single-direction, single-corridor match.
 //
 // These are exact-string matches against CHART's own segment names, which CHART can and
@@ -2449,6 +2451,7 @@ async function fetchMDTravelTimes() {
 // would silently understate the corridor, so it falls back to the model instead.
 function liveMDSegment(dmvRouteId) {
   if (BELTWAY_LOOP_MAP[dmvRouteId]) return liveBeltwayWorseOfTwo(dmvRouteId);
+  if (dmvRouteId === 'i97') return liveI97Sensors();
   const names = CHART_ROUTE_MAP[dmvRouteId];
   if (!names || !_mdTravelTimes) return null;
   const segs = _mdTravelTimes.filter(r => names.includes(r.name));
@@ -2456,7 +2459,7 @@ function liveMDSegment(dmvRouteId) {
   const totalLength = segs.reduce((s, r) => s + (r.length || 0), 0);
   const totalTimeSecs = segs.reduce((s, r) => s + (r.travelTimeSecs || 0), 0);
   if (!totalLength || !totalTimeSecs) return null;
-  return { currentMin: Math.round(totalTimeSecs / 60) };
+  return { currentMin: Math.round(totalTimeSecs / 60), source: 'chart' };
 }
 
 // The Beltway (I-495) is a genuine ring — seg-495-w/seg-495-e trace two ADJACENT arcs of
@@ -2480,6 +2483,23 @@ const BELTWAY_LOOP_MAP = {
     inner: ['I-495 Inner Loop, I-270 Spur EX 38 to I-95 EX 27', 'I-95/I-495 Inner Loop, I-95 to US 50', 'I-95/I-495 Inner Loop, US 50 to Woodrow Wilson Br'],
     outer: ['I-495 Outer Loop, I-95/I-495 to I-270 Spur', 'I-95/I-495 Outer Loop, US 50 to I-95/I-495 Split', 'I-95/I-495 Outer Loop, Woodrow Wilson Br to US 50'],
   },
+  // I-695 (Baltimore Beltway) — unlike I-495, DMV_ROUTES splits this one by loop direction
+  // itself (i695-e = Outer Loop, i695-w = Inner Loop) rather than by arc, and seg-695-e/
+  // seg-695-w trace the SAME single real arc (confirmed at the SVG markup: identical point
+  // lists — MDOT's own centerline data only covers ~230.7° of the ring, not a full closed
+  // loop). So both directions use the identical inner/outer segment lists below and will
+  // render the same worse-of-two color — that's correct, not a bug: it's one real line
+  // drawn twice. Only 4 of a presumed ~5-6 segments per direction are present in CHART's
+  // live feed (confirmed via /api/md-traveltimes) — a real partial-coverage gap, same
+  // category as I-495's own partial arcs, summed honestly rather than guessed at.
+  'i695-e': {
+    inner: ['I-695 Inner Loop, I-97 to I-95 EX 11', 'I-695 Inner Loop, I-95 EX 11 to I-70', 'I-695 Inner Loop, I-70 to I-83 EX 24', 'I-695 Inner Loop, I-83 EX 24 to I-95 EX 33'],
+    outer: ['I-695 Outer Loop, I-95 EX 11 to I-97', 'I-695 Outer Loop, I-70 to I-95 EX 11', 'I-695 Outer Loop, I-83 EX 24 to I-70', 'I-695 Outer Loop, I-95 EX 33 to I-83 EX 24'],
+  },
+  'i695-w': {
+    inner: ['I-695 Inner Loop, I-97 to I-95 EX 11', 'I-695 Inner Loop, I-95 EX 11 to I-70', 'I-695 Inner Loop, I-70 to I-83 EX 24', 'I-695 Inner Loop, I-83 EX 24 to I-95 EX 33'],
+    outer: ['I-695 Outer Loop, I-95 EX 11 to I-97', 'I-695 Outer Loop, I-70 to I-95 EX 11', 'I-695 Outer Loop, I-83 EX 24 to I-70', 'I-695 Outer Loop, I-95 EX 33 to I-83 EX 24'],
+  },
 };
 const BELTWAY_REF_MPH = 55; // matches CHART's own posted/reported free-flow speed for these segments
 function liveBeltwayDirection(names) {
@@ -2499,7 +2519,42 @@ function liveBeltwayWorseOfTwo(dmvRouteId) {
   const outerR = liveBeltwayDirection(outer);
   if (!innerR || !outerR) return null; // require both directions present — same all-or-nothing honesty as elsewhere
   const worse = innerR.ratio >= outerR.ratio ? innerR : outerR;
-  return { currentMin: Math.round(worse.currentMin), avgMin: Math.round(worse.baselineMin) };
+  return { currentMin: Math.round(worse.currentMin), avgMin: Math.round(worse.baselineMin), source: 'chart' };
+}
+
+// I-97 — no CHART travel-time segment exists for this corridor, but 5 real TSS speed
+// sensors sit directly on it (confirmed by description prefix "I-97", not just proximity —
+// several US-50/I-695 sensors geometrically land within a few px of seg-i97's line too,
+// near the interchange cluster at its southern end, and would misattribute a neighboring
+// road's slowdown to I-97 if distance alone were used). Colors from the WORST station's
+// speed vs. I-97's posted 65mph limit (same ratio convention as the Beltway: actual time
+// ÷ a real-world reference, not a guess) — same "show the slowdown" philosophy, applied to
+// point sensors instead of segment travel times. Requires at least 2 healthy stations so
+// one flaky reading can't swing the whole corridor's color; each physical station's own
+// worse direction-reading is used (a real one-sided slowdown, e.g. only the SB lanes
+// backed up, is a genuine corridor problem worth catching, not noise to average away).
+const I97_LENGTH_MI = 36565.469551419046 / 5280; // real MDOT centerline length for this drawn extent (CARDINALITY=1, ID_RTE_NO=97)
+const I97_REF_MPH = 65; // Maryland's posted speed limit on I-97
+function liveI97Sensors() {
+  if (!_mdTssSensors) return null;
+  const i97Line = REAL_ROAD_LINES.find(l => l.id === 'seg-i97');
+  if (!i97Line || !i97Line.points.length) return null;
+  const stations = new Map();
+  for (const r of _mdTssSensors) {
+    if (r.lat == null || r.lon == null || r.speed_mph == null) continue;
+    if (!/^I-?97\b/i.test((r.description || '').trim())) continue; // must genuinely be an I-97-named sensor
+    const p = projectLatLonToSvg(r.lat, r.lon);
+    let dist = Infinity;
+    for (let i = 1; i < i97Line.points.length; i++) dist = Math.min(dist, distPointToSegment(p, i97Line.points[i-1], i97Line.points[i]));
+    if (dist > MAP_MARKER_MAX_DIST_PX) continue;
+    const prevWorst = stations.get(r.sensor_id);
+    if (prevWorst === undefined || r.speed_mph < prevWorst) stations.set(r.sensor_id, r.speed_mph);
+  }
+  if (stations.size < 2) return null; // require 2+ healthy stations — same all-or-nothing honesty as elsewhere
+  const worstMph = Math.min(...stations.values());
+  const currentMin = Math.round((I97_LENGTH_MI / worstMph) * 60);
+  const avgMin = Math.round((I97_LENGTH_MI / I97_REF_MPH) * 60);
+  return { currentMin, avgMin, source: 'sensors', sensorCount: stations.size };
 }
 
 // ╔══════════════════════════════════════════════════════════╗
@@ -2511,17 +2566,18 @@ function liveBeltwayWorseOfTwo(dmvRouteId) {
 //  any of those is simply absent from md_tss_snapshot, not present with a misleading
 //  0/-1 speed.
 //
-//  Still NOT folded into DMV_ROUTES/CHART_ROUTE_MAP's CurrentTime/AverageTime model (no
-//  free-flow/baseline speed exists in this feed to compute a ratio from — that's a
-//  separate, not-yet-built task) — shown here as its own honestly-labeled list, using
-//  CHART's own location description verbatim, no invented corridor mapping.
+//  Shown here as its own honestly-labeled list, using CHART's own location description
+//  verbatim, no invented corridor mapping. Also plotted as marker dots on any real road
+//  geometry via renderMDTssMapMarkers() below.
 //
-//  The SVG map's seg-i495-n/i695-e/i695-w/etc. arcs remain excluded from live TSS
-//  coloring for the same reason as ever (OUTER_LOOP/INNER_LOOP doesn't map onto stored
-//  N/S/E/W, single points can't stand in for a full-corridor label) — EXCEPT I-495,
-//  whose seg-495-w is now real projected road geometry (see the SVG markup) rather than
-//  a stylized ellipse, so real TSS sensor points can be plotted directly on it by
-//  construction, with no direction-guessing involved. See renderMDTssMapMarkers() below.
+//  I-97 is the one corridor whose LINE COLOR also comes from this feed (liveI97Sensors()
+//  above — no CHART travel-time segment exists for it, but it has 5 real on-corridor TSS
+//  stations, which is enough to build a genuine worst-station ratio against its posted
+//  speed limit). Every other real-geometry corridor (I-95, I-270, US-50, I-695, I-83,
+//  I-495) still colors from CHART travel-time segments, not TSS — this feed has no
+//  free-flow/baseline speed of its own, so building the same ratio for those roads would
+//  need a per-corridor reference speed the way I-97's does; not done here, and not needed
+//  since those roads already have a genuine CHART-based live source.
 let _mdTssSensors = null;
 
 async function fetchMDTssSensors() {
@@ -2534,6 +2590,11 @@ async function fetchMDTssSensors() {
     _mdTssSensors = null;
   }
   renderMDTssSensors();
+  // I-97's line color now comes from this same sensor feed (liveI97Sensors()) — without
+  // this, I-97 would only recolor whenever the separate MD travel-times fetch happens to
+  // fire, and could sit on a stale/modeled color for up to one full refresh cycle after
+  // new sensor readings land.
+  if (allTravelTimes.length) renderTravelTimes();
 }
 
 function renderMDTssSensors() {
@@ -2712,7 +2773,7 @@ function buildTravelTimes() {
     // route's liveMDSegment() still returns only {currentMin}, so live?.avgMin is
     // undefined there and this falls back to the static r.avgMin exactly as before.
     const avg = live?.avgMin ?? r.avgMin;
-    return { ...r, CurrentTime:cur, AverageTime:avg, _road:r.road, _dir:r.dir, _live: !!live };
+    return { ...r, CurrentTime:cur, AverageTime:avg, _road:r.road, _dir:r.dir, _live: !!live, _liveSource: live?.source ?? null };
   });
 }
 async function renderTravelTimes() {
@@ -2752,7 +2813,9 @@ async function renderTravelTimes() {
     const avgDisplay = baseline && baseline.count >= 5
       ? `90d avg: ${baseline.avg}m`
       : `avg ${r.AverageTime}m`;
-    const srcDot = r._live
+    const srcDot = r._liveSource === 'sensors'
+      ? '<span class="dot dot-green" title="Live: MD Speed Sensors" style="width:5px;height:5px;margin-right:4px;"></span>'
+      : r._liveSource === 'chart'
       ? '<span class="dot dot-green" title="Live: MDOT SHA CHART" style="width:5px;height:5px;margin-right:4px;"></span>'
       : '<span class="dot dot-amber" title="Modeled — no live source for this route" style="width:5px;height:5px;margin-right:4px;"></span>';
     html += `<div class="tt-row" id="tt-row-${r.id}">
@@ -2767,7 +2830,8 @@ async function renderTravelTimes() {
   el.innerHTML = html;
   el.insertAdjacentHTML('beforeend', `<div style="padding:4px 10px;font-size:8px;color:var(--text-dim);border-top:1px solid var(--border);font-style:italic;line-height:1.7">
     <span class="dot dot-green" style="width:5px;height:5px;margin-right:4px;"></span>I-270, US-50, I-295, I-83: live &mdash; MDOT SHA CHART, official ArcGIS Open Data<br>
-    <span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>I-495 (MD side), I-695: time-of-day model &mdash; CHART only labels these Inner/Outer Loop, no reliable compass-direction match<br>
+    <span class="dot dot-green" style="width:5px;height:5px;margin-right:4px;"></span>I-495 (MD side), I-695: live &mdash; MDOT SHA CHART Inner/Outer Loop, worse of the two directions<br>
+    <span class="dot dot-green" style="width:5px;height:5px;margin-right:4px;"></span>I-97: live &mdash; MD TSS speed sensors on this corridor, worst of 2+ healthy stations<br>
     <span class="dot dot-amber" style="width:5px;height:5px;margin-right:4px;"></span>I-95 (full corridor), I-495 (VA side), I-66: time-of-day model &mdash; no live source covers this corridor/state<br>
     Real-time alternatives: <a href="https://511virginia.org" target="_blank" style="color:var(--text-dim)">511virginia.org</a> &middot; <a href="https://chart.maryland.gov" target="_blank" style="color:var(--text-dim)">chart.maryland.gov</a>
   </div>`);
@@ -2843,7 +2907,7 @@ function updateTrafficMap() {
     ['seg-i66-w',  'I-66',  'W'],  // real data, was dropped when this was one "peak direction" line
     ['seg-i83',    'I-83',  'S'],
     ['seg-us50',   'US-50', 'E'],
-    ['seg-i97',    'US-50', 'E'],  // I-97 proxy to US-50 — no real I-97 data, left single-line
+    ['seg-i97',    'I-97',  'S'],  // own live TSS sensor data now (see liveI97Sensors()), no longer proxied to US-50
     ['seg-i295',   'I-295', 'S'],
     ['seg-va267',  'I-66',  'E'],  // Dulles Toll Rd proxy — no real VA-267 data, left single-line
   ];
